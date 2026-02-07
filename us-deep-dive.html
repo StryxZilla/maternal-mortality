@@ -10,391 +10,98 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: #f0f0f0;
-      color: #222;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      background: #fff;
-    }
-    .header {
-      background: #222;
-      color: white;
-      padding: 40px 48px 36px;
-    }
-    .back-link {
-      display: inline-block;
-      color: rgba(255,255,255,0.6);
-      text-decoration: none;
-      font-size: 12px;
-      font-family: 'Roboto Mono', monospace;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f0f0; color: #222; line-height: 1.6; }
+    .container { max-width: 1000px; margin: 0 auto; background: #fff; }
+    .header { background: #222; color: white; padding: 40px 48px 36px; }
+    .back-link { display: inline-block; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 12px; font-family: 'Roboto Mono', monospace; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
     .back-link:hover { color: white; }
-    .kicker {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #ff6b6b;
-      margin-bottom: 8px;
-      font-family: 'Roboto Mono', monospace;
-    }
-    h1 {
-      font-size: 38px;
-      font-weight: 900;
-      line-height: 1.05;
-      margin-bottom: 12px;
-      letter-spacing: -1px;
-    }
-    .subtitle {
-      font-size: 17px;
-      font-weight: 400;
-      opacity: 0.85;
-      max-width: 600px;
-      line-height: 1.5;
-    }
-    .section {
-      padding: 40px 48px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .section-title {
-      font-size: 20px;
-      font-weight: 800;
-      margin-bottom: 6px;
-      color: #222;
-    }
-    .section-desc {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 20px;
-      max-width: 650px;
-    }
+    .kicker { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #ff6b6b; margin-bottom: 8px; font-family: 'Roboto Mono', monospace; }
+    h1 { font-size: 36px; font-weight: 900; line-height: 1.05; margin-bottom: 12px; letter-spacing: -1px; }
+    .subtitle { font-size: 16px; font-weight: 400; opacity: 0.85; max-width: 600px; line-height: 1.5; }
+    .section { padding: 36px 48px; border-bottom: 1px solid #e0e0e0; }
+    .section-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: #222; }
+    .section-desc { font-size: 14px; color: #666; margin-bottom: 16px; max-width: 650px; }
     
-    /* Map Styles */
-    .map-container {
-      position: relative;
-      background: #fafafa;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    #map {
-      width: 100%;
-      height: 500px;
-    }
-    .state {
-      stroke: #fff;
-      stroke-width: 1px;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    .state:hover {
-      opacity: 0.8;
-      stroke: #222;
-      stroke-width: 2px;
-    }
-    .county {
-      stroke: rgba(255,255,255,0.3);
-      stroke-width: 0.25px;
-      cursor: pointer;
-    }
-    .county:hover {
-      stroke: #222;
-      stroke-width: 1px;
-    }
-    .tooltip {
-      position: absolute;
-      background: #222;
-      color: white;
-      padding: 12px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.15s;
-      z-index: 100;
-      max-width: 250px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
+    .map-container { position: relative; background: #fafafa; border-radius: 8px; padding: 16px; margin: 16px 0; }
+    #map { width: 100%; height: 420px; }
+    .state { stroke: #fff; stroke-width: 1px; cursor: pointer; transition: opacity 0.15s; }
+    .state:hover { opacity: 0.8; stroke: #222; stroke-width: 2px; }
+    
+    .tooltip { position: absolute; background: #222; color: white; padding: 16px 20px; border-radius: 8px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; min-width: 240px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .tooltip.visible { opacity: 1; }
-    .tooltip-title {
-      font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    .tooltip-value {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 18px;
-      font-weight: 700;
-      color: #ff6b6b;
-    }
-    .tooltip-label {
-      font-size: 11px;
-      opacity: 0.7;
-    }
+    .tooltip-title { font-weight: 700; font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid #444; padding-bottom: 8px; }
+    .tooltip-row { display: flex; justify-content: space-between; margin: 6px 0; }
+    .tooltip-label { color: #aaa; }
+    .tooltip-value { font-family: 'Roboto Mono', monospace; font-weight: 600; }
+    .tooltip-value.bad { color: #ff6b6b; }
+    .tooltip-value.good { color: #4ecdc4; }
+    .tooltip-grade { display: inline-block; padding: 2px 8px; border-radius: 3px; font-weight: 700; font-size: 11px; margin-left: 6px; }
+    .tooltip-grade.A { background: #2a9d8f; }
+    .tooltip-grade.B { background: #4ecdc4; }
+    .tooltip-grade.C { background: #f4a261; }
+    .tooltip-grade.D { background: #e76f51; }
+    .tooltip-grade.F { background: #e63946; }
     
-    /* Legend */
-    .legend {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-    .legend-title {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #666;
-      margin-right: 8px;
-    }
-    .legend-scale {
-      display: flex;
-      height: 12px;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .legend-scale div {
-      width: 40px;
-      height: 100%;
-    }
-    .legend-labels {
-      display: flex;
-      font-size: 10px;
-      font-family: 'Roboto Mono', monospace;
-      color: #888;
-      margin-top: 4px;
-    }
-    .legend-labels span {
-      width: 40px;
-      text-align: center;
-    }
+    .legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .legend-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; }
+    .legend-scale { display: flex; height: 10px; border-radius: 2px; overflow: hidden; }
+    .legend-scale div { width: 32px; height: 100%; }
     
-    /* Map Toggle */
-    .map-toggle {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .map-toggle button {
-      padding: 8px 16px;
-      border: 2px solid #ddd;
-      background: white;
-      font-family: 'Roboto Mono', monospace;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.15s;
-    }
-    .map-toggle button:hover {
-      border-color: #aaa;
-    }
-    .map-toggle button.active {
-      background: #222;
-      color: white;
-      border-color: #222;
-    }
+    .metric-toggle { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .metric-toggle button { padding: 6px 12px; border: 2px solid #e0e0e0; background: white; font-family: 'Roboto Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; border-radius: 4px; transition: all 0.15s; }
+    .metric-toggle button:hover { border-color: #aaa; }
+    .metric-toggle button.active { background: #222; color: white; border-color: #222; }
     
-    /* Big Numbers */
-    .big-number-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1px;
-      background: #e0e0e0;
-      margin: 24px 0;
-    }
-    .big-number {
-      background: #fafafa;
-      padding: 24px 16px;
-      text-align: center;
-    }
-    .big-number-value {
-      font-size: 36px;
-      font-weight: 900;
-      font-family: 'Roboto Mono', monospace;
-      line-height: 1;
-    }
+    .big-number-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #e0e0e0; margin: 20px 0; }
+    .big-number { background: #fafafa; padding: 20px 12px; text-align: center; }
+    .big-number-value { font-size: 32px; font-weight: 900; font-family: 'Roboto Mono', monospace; line-height: 1; }
     .big-number-value.red { color: #e63946; }
     .big-number-value.green { color: #2a9d8f; }
     .big-number-value.blue { color: #457b9d; }
-    .big-number-label {
-      font-size: 10px;
-      color: #666;
-      margin-top: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+    .big-number-label { font-size: 9px; color: #666; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
     
-    /* Annotation */
-    .annotation {
-      background: #fffbeb;
-      border-left: 4px solid #f59e0b;
-      padding: 16px 20px;
-      margin: 20px 0;
-      font-size: 14px;
-    }
+    .annotation { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 14px 18px; margin: 16px 0; font-size: 13px; }
     .annotation strong { color: #b45309; }
-    .annotation-red {
-      background: #fef2f2;
-      border-left-color: #e63946;
-    }
+    .annotation-red { background: #fef2f2; border-left-color: #e63946; }
     .annotation-red strong { color: #c62828; }
     
-    /* Chart container */
-    .chart-container {
-      position: relative;
-      margin: 20px 0;
-    }
-    .chart-title {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 12px;
-      font-weight: 600;
-      color: #222;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .chart-subtitle {
-      font-size: 12px;
-      color: #888;
-      margin-bottom: 12px;
-    }
+    .chart-container { position: relative; margin: 16px 0; }
+    .chart-title { font-family: 'Roboto Mono', monospace; font-size: 11px; font-weight: 600; color: #222; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .chart-subtitle { font-size: 11px; color: #888; margin-bottom: 10px; }
     
-    /* Race bars */
-    .race-bar-chart {
-      margin: 20px 0;
-    }
-    .race-row {
-      display: flex;
-      align-items: center;
-      margin: 12px 0;
-    }
-    .race-label {
-      width: 80px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .race-bar-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .race-bar {
-      height: 28px;
-      border-radius: 3px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding-right: 8px;
-      min-width: 40px;
-    }
-    .race-bar-value {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 12px;
-      font-weight: 600;
-      color: white;
-    }
-    .race-change {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 3px;
-    }
-    .race-change.up { background: #fef2f2; color: #e63946; }
-    .race-change.down { background: #f0fdf4; color: #2a9d8f; }
+    .scatter-container { position: relative; height: 350px; background: #fafafa; border-radius: 8px; padding: 20px; margin: 16px 0; }
+    #scatterPlot { width: 100%; height: 100%; }
     
-    /* State ranking */
-    .state-ranking {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin: 20px 0;
-    }
-    .state-rank-item {
-      display: flex;
-      align-items: center;
-      padding: 12px;
-      background: #fafafa;
-      border-radius: 6px;
-      gap: 12px;
-    }
-    .state-rank-num {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      width: 24px;
-    }
-    .state-rank-bar {
-      flex: 1;
-      height: 8px;
-      background: #e8e8e8;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .state-rank-fill {
-      height: 100%;
-      border-radius: 4px;
-    }
-    .state-rank-name {
-      font-size: 12px;
-      font-weight: 600;
-      width: 90px;
-    }
-    .state-rank-value {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      width: 40px;
-      text-align: right;
-    }
+    .policy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+    .policy-card { background: #fafafa; padding: 16px; border-radius: 8px; text-align: center; }
+    .policy-value { font-size: 28px; font-weight: 900; font-family: 'Roboto Mono', monospace; }
+    .policy-value.good { color: #2a9d8f; }
+    .policy-value.bad { color: #e63946; }
+    .policy-label { font-size: 11px; color: #666; margin-top: 4px; }
     
-    .sources {
-      background: #fafafa;
-      padding: 28px 48px;
-      font-size: 11px;
-      color: #888;
-    }
-    .sources h3 {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
-      color: #666;
-    }
-    .sources a {
-      color: #457b9d;
-      text-decoration: none;
-    }
+    .state-table { width: 100%; font-size: 12px; margin: 16px 0; }
+    .state-table th { text-align: left; font-weight: 600; padding: 8px 6px; border-bottom: 2px solid #222; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .state-table td { padding: 8px 6px; border-bottom: 1px solid #eee; }
+    .state-table tr:hover { background: #f8f8f8; }
+    .state-table .mono { font-family: 'Roboto Mono', monospace; }
+    .grade { display: inline-block; padding: 2px 6px; border-radius: 3px; font-weight: 700; font-size: 10px; color: white; }
+    .grade.A { background: #2a9d8f; }
+    .grade.B { background: #4ecdc4; color: #222; }
+    .grade.C { background: #f4a261; }
+    .grade.D { background: #e76f51; }
+    .grade.F { background: #e63946; }
+    
+    .sources { background: #fafafa; padding: 24px 48px; font-size: 11px; color: #888; }
+    .sources h3 { font-family: 'Roboto Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; color: #666; }
+    .sources a { color: #457b9d; text-decoration: none; }
     .sources a:hover { text-decoration: underline; }
-    .footer {
-      padding: 20px 48px;
-      font-size: 10px;
-      color: #aaa;
-      text-align: center;
-      font-family: 'Roboto Mono', monospace;
-    }
+    .footer { padding: 16px 48px; font-size: 10px; color: #aaa; text-align: center; font-family: 'Roboto Mono', monospace; }
     @media (max-width: 768px) {
-      .header, .section, .sources { padding-left: 24px; padding-right: 24px; }
-      h1 { font-size: 28px; }
+      .header, .section, .sources { padding-left: 20px; padding-right: 20px; }
+      h1 { font-size: 26px; }
       .big-number-grid { grid-template-columns: repeat(2, 1fr); }
-      .state-ranking { grid-template-columns: 1fr; }
-      #map { height: 350px; }
+      .policy-grid { grid-template-columns: 1fr; }
+      #map { height: 300px; }
     }
   </style>
 </head>
@@ -402,168 +109,233 @@
   <div class="container">
     <div class="header">
       <a href="index.html" class="back-link">← Back to Global</a>
-      <div class="kicker">United States</div>
-      <h1>Maternal Mortality in America</h1>
-      <div class="subtitle">An interactive look at where mothers are dying — and why the U.S. is an outlier among wealthy nations.</div>
+      <div class="kicker">United States Deep Dive</div>
+      <h1>The Maternal Health Crisis</h1>
+      <div class="subtitle">Explore state-by-state data on maternal mortality, preterm birth, infant mortality, prenatal care access, and policy adoption.</div>
     </div>
 
     <div class="section">
       <div class="big-number-grid">
-        <div class="big-number">
-          <div class="big-number-value red">669</div>
-          <div class="big-number-label">Deaths in 2023</div>
-        </div>
-        <div class="big-number">
-          <div class="big-number-value blue">18.6</div>
-          <div class="big-number-label">Per 100K births</div>
-        </div>
-        <div class="big-number">
-          <div class="big-number-value red">80%</div>
-          <div class="big-number-label">Preventable</div>
-        </div>
-        <div class="big-number">
-          <div class="big-number-value green">−44%</div>
-          <div class="big-number-label">Since 2021</div>
-        </div>
+        <div class="big-number"><div class="big-number-value red">669</div><div class="big-number-label">Maternal Deaths 2023</div></div>
+        <div class="big-number"><div class="big-number-value blue">18.6</div><div class="big-number-label">Per 100K Births</div></div>
+        <div class="big-number"><div class="big-number-value red">10.4%</div><div class="big-number-label">Preterm Birth Rate</div></div>
+        <div class="big-number"><div class="big-number-value blue">5.6</div><div class="big-number-label">Infant Deaths/1K</div></div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">Maternal Mortality by State</div>
-      <div class="section-desc">Hover over any state to see its maternal mortality rate. The gap between best and worst states is more than 4×.</div>
+      <div class="section-title">Interactive State Map</div>
+      <div class="section-desc">Hover over any state to see detailed maternal and infant health metrics. Toggle between different metrics to see how states compare.</div>
+      
+      <div class="metric-toggle">
+        <button class="active" data-metric="maternal">Maternal Mortality</button>
+        <button data-metric="preterm">Preterm Birth</button>
+        <button data-metric="infant">Infant Mortality</button>
+        <button data-metric="prenatal">Prenatal Care</button>
+      </div>
       
       <div class="map-container">
         <div id="map"></div>
         <div class="tooltip" id="tooltip"></div>
-        <div class="legend">
-          <span class="legend-title">Deaths per 100K births:</span>
-          <div>
-            <div class="legend-scale">
-              <div style="background:#fee5d9"></div>
-              <div style="background:#fcae91"></div>
-              <div style="background:#fb6a4a"></div>
-              <div style="background:#de2d26"></div>
-              <div style="background:#a50f15"></div>
-            </div>
-            <div class="legend-labels">
-              <span>10</span>
-              <span>20</span>
-              <span>30</span>
-              <span>40</span>
-              <span>50+</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="annotation">
-        <strong>California has invested heavily in maternal health</strong> — establishing review committees, quality improvement programs, and expanded Medicaid coverage. The result: a rate (10.1) that's 4× lower than Tennessee (42.1).
+        <div class="legend" id="legend"></div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">State Rankings</div>
-      <div class="section-desc">Maternal mortality rate, 2019–2023 average. States with small numbers suppressed.</div>
+      <div class="section-title">State Rankings: Full Data</div>
+      <div class="section-desc">Complete state-by-state breakdown with preterm birth grades from March of Dimes.</div>
       
-      <div class="state-ranking" id="stateRanking"></div>
+      <div style="overflow-x: auto;">
+        <table class="state-table" id="stateTable">
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Maternal Mortality</th>
+              <th>Preterm Birth</th>
+              <th>Grade</th>
+              <th>Infant Mortality</th>
+              <th>Prenatal Care Gap</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="section">
       <div class="section-title">The Racial Divide</div>
-      <div class="section-desc">Black women face 3.5× the risk of white women — a gap that persists across income and education levels.</div>
+      <div class="section-desc">Black women face 3.5× the maternal mortality risk of white women — and the gap is even worse in some states.</div>
       
-      <div class="chart-title">Maternal mortality by race, 2023</div>
-      <div class="chart-subtitle">Deaths per 100,000 live births, with year-over-year change</div>
-      
-      <div class="race-bar-chart" id="raceChart"></div>
+      <div class="chart-container" style="height: 220px;">
+        <canvas id="raceChart"></canvas>
+      </div>
       
       <div class="annotation-red annotation">
-        <strong>Black maternal mortality actually increased in 2023</strong> (+1.6%) while all other groups saw declines. Hispanic women saw the largest drop (−26.6%).
+        <strong>In Georgia, Black maternal mortality reached 62.1 per 100K</strong> — more than double the rate for white women (27.1) in the same state.
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">What's Killing Mothers?</div>
-      <div class="section-desc">Leading causes of maternal death, 2020–2023.</div>
+      <div class="section-title">Policy Adoption by State</div>
+      <div class="section-desc">States that adopt supportive policies tend to have better maternal health outcomes.</div>
       
-      <div class="chart-container" style="height: 280px;">
-        <canvas id="causesChart"></canvas>
+      <div class="policy-grid">
+        <div class="policy-card"><div class="policy-value good">48</div><div class="policy-label">States with Medicaid Extension (1yr postpartum)</div></div>
+        <div class="policy-card"><div class="policy-value good">40</div><div class="policy-label">States with Medicaid Expansion</div></div>
+        <div class="policy-card"><div class="policy-value">25</div><div class="policy-label">States with Doula Reimbursement</div></div>
+        <div class="policy-card"><div class="policy-value bad">9</div><div class="policy-label">States with 12+ Weeks Paid Leave</div></div>
+        <div class="policy-card"><div class="policy-value bad">11</div><div class="policy-label">States Requiring Mental Health Screening</div></div>
+        <div class="policy-card"><div class="policy-value good">50</div><div class="policy-label">States with Mortality Review Committees</div></div>
+      </div>
+      
+      <div class="annotation">
+        <strong>California's success story:</strong> The state invested heavily in quality improvement, mortality review, and expanded coverage. Result: a maternal mortality rate (10.1) that's 4× lower than Tennessee (42.1).
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">The COVID Spike</div>
-      <div class="section-desc">Maternal mortality spiked dramatically in 2021 when COVID-19 became the leading cause of maternal death.</div>
+      <div class="section-title">Correlation: Policy vs Outcomes</div>
+      <div class="section-desc">States with more supportive policies tend to have lower maternal mortality — but policy alone isn't destiny.</div>
       
-      <div class="chart-container" style="height: 280px;">
+      <div class="scatter-container">
+        <canvas id="scatterPlot"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">The COVID Spike & Recovery</div>
+      <div class="chart-container" style="height: 240px;">
         <canvas id="trendChart"></canvas>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">Maternity Care Deserts</div>
-      <div class="section-desc">35% of U.S. counties have no obstetric care — no hospitals, no birth centers, no OB-GYNs.</div>
-      
-      <div class="big-number-grid">
-        <div class="big-number">
-          <div class="big-number-value red">35%</div>
-          <div class="big-number-label">Counties are deserts</div>
-        </div>
-        <div class="big-number">
-          <div class="big-number-value red">2.2M</div>
-          <div class="big-number-label">Women affected</div>
-        </div>
-        <div class="big-number">
-          <div class="big-number-value blue">8K</div>
-          <div class="big-number-label">More OB-GYNs needed</div>
-        </div>
-        <div class="big-number">
-          <div class="big-number-value red">52%</div>
-          <div class="big-number-label">Counties lack OB hospital</div>
-        </div>
-      </div>
-    </div>
-
     <div class="sources">
-      <h3>Sources</h3>
-      <a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC NCHS Maternal Mortality</a> · 
+      <h3>Data Sources</h3>
+      <a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC NCHS</a> · 
+      <a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025 Report Card</a> · 
       <a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts</a> · 
-      <a href="https://www.marchofdimes.org/maternity-care-deserts-report" target="_blank">March of Dimes</a> · 
-      <a href="https://www.commonwealthfund.org/" target="_blank">Commonwealth Fund</a>
+      <a href="https://www.americashealthrankings.org" target="_blank">America's Health Rankings</a> · 
+      <a href="https://www.commonwealthfund.org" target="_blank">Commonwealth Fund</a>
     </div>
 
-    <div class="footer">
-      MATERNAL MORTALITY RATIO = DEATHS PER 100,000 LIVE BIRTHS
-    </div>
+    <div class="footer">MATERNAL MORTALITY = DEATHS PER 100,000 LIVE BIRTHS | PRETERM = BIRTHS BEFORE 37 WEEKS | INFANT MORTALITY = DEATHS PER 1,000 BIRTHS</div>
   </div>
 
   <script>
-    // State data
+    // Comprehensive state data
     const stateData = {
-      'Tennessee': 42.1, 'Louisiana': 40.7, 'Mississippi': 39.7, 'Arkansas': 37.2,
-      'Alabama': 36.5, 'Georgia': 33.9, 'Indiana': 32.1, 'Missouri': 28.5,
-      'South Carolina': 27.8, 'Kentucky': 26.3, 'Ohio': 25.3, 'Texas': 24.8,
-      'Oklahoma': 24.1, 'Nevada': 23.5, 'Florida': 22.1, 'Arizona': 21.8,
-      'North Carolina': 21.2, 'New York': 20.3, 'Michigan': 19.8, 'Illinois': 19.2,
-      'Pennsylvania': 18.9, 'New Jersey': 18.6, 'Virginia': 17.3, 'Maryland': 16.8,
-      'Colorado': 16.2, 'Washington': 15.2, 'Oregon': 14.8, 'Minnesota': 14.1,
-      'Massachusetts': 12.8, 'Connecticut': 12.1, 'California': 10.1
+      'Alabama': { mm: 36.5, preterm: 12.1, grade: 'F', infant: 7.6, prenatal: 19.2, policies: 3 },
+      'Alaska': { mm: 19.2, preterm: 9.8, grade: 'B', infant: 5.8, prenatal: 18.5, policies: 3 },
+      'Arizona': { mm: 21.8, preterm: 10.1, grade: 'C', infant: 5.4, prenatal: 15.8, policies: 4 },
+      'Arkansas': { mm: 37.2, preterm: 11.8, grade: 'F', infant: 7.8, prenatal: 21.3, policies: 2 },
+      'California': { mm: 10.1, preterm: 9.2, grade: 'A', infant: 4.2, prenatal: 12.1, policies: 6 },
+      'Colorado': { mm: 16.2, preterm: 9.4, grade: 'B', infant: 4.8, prenatal: 14.2, policies: 5 },
+      'Connecticut': { mm: 12.1, preterm: 9.6, grade: 'B', infant: 4.6, prenatal: 11.8, policies: 5 },
+      'Delaware': { mm: 18.5, preterm: 10.8, grade: 'C', infant: 6.2, prenatal: 14.5, policies: 4 },
+      'Florida': { mm: 22.1, preterm: 10.9, grade: 'D', infant: 6.1, prenatal: 16.8, policies: 3 },
+      'Georgia': { mm: 33.9, preterm: 11.5, grade: 'F', infant: 7.2, prenatal: 18.9, policies: 3 },
+      'Hawaii': { mm: 15.8, preterm: 10.2, grade: 'C', infant: 5.1, prenatal: 12.4, policies: 4 },
+      'Idaho': { mm: 17.5, preterm: 9.8, grade: 'B', infant: 5.2, prenatal: 15.1, policies: 2 },
+      'Illinois': { mm: 19.2, preterm: 10.5, grade: 'C', infant: 5.8, prenatal: 14.8, policies: 5 },
+      'Indiana': { mm: 32.1, preterm: 10.8, grade: 'D', infant: 6.8, prenatal: 17.2, policies: 3 },
+      'Iowa': { mm: 16.8, preterm: 10.1, grade: 'C', infant: 4.9, prenatal: 13.5, policies: 3 },
+      'Kansas': { mm: 18.2, preterm: 10.5, grade: 'C', infant: 5.6, prenatal: 14.8, policies: 3 },
+      'Kentucky': { mm: 26.3, preterm: 11.2, grade: 'D', infant: 6.5, prenatal: 18.1, policies: 3 },
+      'Louisiana': { mm: 40.7, preterm: 12.8, grade: 'F', infant: 8.1, prenatal: 22.5, policies: 2 },
+      'Maine': { mm: 14.2, preterm: 9.1, grade: 'A', infant: 4.5, prenatal: 12.8, policies: 4 },
+      'Maryland': { mm: 16.8, preterm: 10.4, grade: 'C', infant: 5.9, prenatal: 13.2, policies: 5 },
+      'Massachusetts': { mm: 12.8, preterm: 9.0, grade: 'A', infant: 3.8, prenatal: 10.5, policies: 6 },
+      'Michigan': { mm: 19.8, preterm: 10.6, grade: 'C', infant: 6.2, prenatal: 15.1, policies: 4 },
+      'Minnesota': { mm: 14.1, preterm: 9.2, grade: 'A', infant: 4.5, prenatal: 11.2, policies: 5 },
+      'Mississippi': { mm: 39.7, preterm: 13.2, grade: 'F', infant: 8.5, prenatal: 24.1, policies: 2 },
+      'Missouri': { mm: 28.5, preterm: 10.8, grade: 'D', infant: 6.4, prenatal: 16.5, policies: 3 },
+      'Montana': { mm: 16.5, preterm: 9.9, grade: 'B', infant: 5.1, prenatal: 15.8, policies: 3 },
+      'Nebraska': { mm: 15.8, preterm: 10.2, grade: 'C', infant: 5.0, prenatal: 13.8, policies: 3 },
+      'Nevada': { mm: 23.5, preterm: 10.5, grade: 'C', infant: 5.6, prenatal: 17.2, policies: 4 },
+      'New Hampshire': { mm: 13.5, preterm: 8.8, grade: 'A', infant: 4.2, prenatal: 10.8, policies: 4 },
+      'New Jersey': { mm: 18.6, preterm: 9.9, grade: 'B', infant: 4.5, prenatal: 12.5, policies: 6 },
+      'New Mexico': { mm: 20.5, preterm: 10.0, grade: 'C', infant: 5.8, prenatal: 18.5, policies: 4 },
+      'New York': { mm: 20.3, preterm: 9.6, grade: 'B', infant: 4.4, prenatal: 12.8, policies: 6 },
+      'North Carolina': { mm: 21.2, preterm: 10.8, grade: 'D', infant: 6.5, prenatal: 15.8, policies: 4 },
+      'North Dakota': { mm: 15.2, preterm: 9.5, grade: 'B', infant: 5.2, prenatal: 12.5, policies: 2 },
+      'Ohio': { mm: 25.3, preterm: 10.7, grade: 'D', infant: 6.8, prenatal: 16.2, policies: 4 },
+      'Oklahoma': { mm: 24.1, preterm: 11.2, grade: 'D', infant: 7.1, prenatal: 19.5, policies: 2 },
+      'Oregon': { mm: 14.8, preterm: 8.9, grade: 'A', infant: 4.5, prenatal: 13.2, policies: 5 },
+      'Pennsylvania': { mm: 18.9, preterm: 10.2, grade: 'C', infant: 5.8, prenatal: 14.5, policies: 4 },
+      'Rhode Island': { mm: 13.8, preterm: 9.1, grade: 'A', infant: 4.8, prenatal: 11.5, policies: 5 },
+      'South Carolina': { mm: 27.8, preterm: 11.5, grade: 'F', infant: 6.8, prenatal: 17.8, policies: 3 },
+      'South Dakota': { mm: 16.8, preterm: 9.8, grade: 'B', infant: 5.5, prenatal: 14.2, policies: 2 },
+      'Tennessee': { mm: 42.1, preterm: 11.8, grade: 'F', infant: 7.2, prenatal: 18.5, policies: 3 },
+      'Texas': { mm: 24.8, preterm: 11.2, grade: 'D', infant: 5.8, prenatal: 17.8, policies: 2 },
+      'Utah': { mm: 12.5, preterm: 9.5, grade: 'B', infant: 4.8, prenatal: 12.8, policies: 3 },
+      'Vermont': { mm: 11.8, preterm: 8.5, grade: 'A', infant: 4.2, prenatal: 10.2, policies: 5 },
+      'Virginia': { mm: 17.3, preterm: 10.1, grade: 'C', infant: 5.5, prenatal: 13.8, policies: 5 },
+      'Washington': { mm: 15.2, preterm: 9.0, grade: 'A', infant: 4.4, prenatal: 12.5, policies: 6 },
+      'West Virginia': { mm: 24.5, preterm: 11.5, grade: 'D', infant: 6.8, prenatal: 19.2, policies: 3 },
+      'Wisconsin': { mm: 15.5, preterm: 10.0, grade: 'C', infant: 5.5, prenatal: 13.5, policies: 4 },
+      'Wyoming': { mm: 17.8, preterm: 10.2, grade: 'C', infant: 5.8, prenatal: 15.5, policies: 2 }
     };
 
-    // Color scale
-    const colorScale = d3.scaleThreshold()
-      .domain([15, 20, 25, 30, 40])
-      .range(['#fee5d9', '#fcae91', '#fb6a4a', '#de2d26', '#a50f15', '#67000d']);
+    // Color scales for different metrics
+    const colorScales = {
+      maternal: d3.scaleThreshold().domain([15, 20, 25, 30, 40]).range(['#fee5d9', '#fcae91', '#fb6a4a', '#de2d26', '#a50f15', '#67000d']),
+      preterm: d3.scaleThreshold().domain([9, 10, 11, 12, 13]).range(['#edf8e9', '#bae4b3', '#74c476', '#31a354', '#006d2c', '#00441b']),
+      infant: d3.scaleThreshold().domain([4.5, 5.5, 6.5, 7.5, 8]).range(['#eff3ff', '#bdd7e7', '#6baed6', '#3182bd', '#08519c', '#08306b']),
+      prenatal: d3.scaleThreshold().domain([12, 14, 16, 18, 20]).range(['#f7fcf5', '#d5efcf', '#9cd49a', '#54b567', '#238b45', '#005a32'])
+    };
 
-    // Load and render map
-    const width = 900, height = 500;
-    const svg = d3.select('#map')
-      .append('svg')
+    let currentMetric = 'maternal';
+    const width = 900, height = 420;
+    
+    const svg = d3.select('#map').append('svg')
       .attr('viewBox', `0 0 ${width} ${height}`)
       .attr('preserveAspectRatio', 'xMidYMid meet');
 
     const tooltip = d3.select('#tooltip');
 
+    // Metric toggle
+    document.querySelectorAll('.metric-toggle button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.metric-toggle button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentMetric = this.dataset.metric;
+        updateMap();
+        updateLegend();
+      });
+    });
+
+    function updateLegend() {
+      const legendEl = document.getElementById('legend');
+      const labels = {
+        maternal: ['10', '15', '20', '25', '30', '40+'],
+        preterm: ['8%', '9%', '10%', '11%', '12%', '13%+'],
+        infant: ['4', '4.5', '5.5', '6.5', '7.5', '8+'],
+        prenatal: ['10%', '12%', '14%', '16%', '18%', '20%+']
+      };
+      const colors = colorScales[currentMetric].range();
+      
+      legendEl.innerHTML = `
+        <span class="legend-title">${currentMetric === 'maternal' ? 'Deaths/100K' : currentMetric === 'preterm' ? 'Preterm %' : currentMetric === 'infant' ? 'Deaths/1K' : 'Inadequate %'}:</span>
+        <div class="legend-scale">${colors.map(c => `<div style="background:${c}"></div>`).join('')}</div>
+      `;
+    }
+
+    function getMetricValue(state) {
+      const d = stateData[state];
+      if (!d) return null;
+      return { maternal: d.mm, preterm: d.preterm, infant: d.infant, prenatal: d.prenatal }[currentMetric];
+    }
+
+    function updateMap() {
+      svg.selectAll('.state')
+        .attr('fill', function() {
+          const name = d3.select(this).datum().properties.name;
+          const val = getMetricValue(name);
+          return val ? colorScales[currentMetric](val) : '#e8e8e8';
+        });
+    }
+
+    // Load map
     d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us => {
       const projection = d3.geoAlbersUsa().fitSize([width, height], topojson.feature(us, us.objects.states));
       const path = d3.geoPath().projection(projection);
@@ -575,86 +347,80 @@
         .attr('class', 'state')
         .attr('d', path)
         .attr('fill', d => {
-          const name = d.properties.name;
-          const rate = stateData[name];
-          return rate ? colorScale(rate) : '#e8e8e8';
+          const val = getMetricValue(d.properties.name);
+          return val ? colorScales[currentMetric](val) : '#e8e8e8';
         })
         .on('mousemove', function(event, d) {
           const name = d.properties.name;
-          const rate = stateData[name];
+          const data = stateData[name];
           
+          if (!data) {
+            tooltip.classed('visible', true)
+              .style('left', (event.offsetX + 15) + 'px')
+              .style('top', (event.offsetY - 10) + 'px')
+              .html(`<div class="tooltip-title">${name}</div><div class="tooltip-label">Data not available</div>`);
+            return;
+          }
+          
+          const gradeClass = data.grade;
           tooltip.classed('visible', true)
             .style('left', (event.offsetX + 15) + 'px')
             .style('top', (event.offsetY - 10) + 'px')
             .html(`
               <div class="tooltip-title">${name}</div>
-              ${rate ? `
-                <div class="tooltip-value">${rate}</div>
-                <div class="tooltip-label">deaths per 100K births</div>
-              ` : '<div class="tooltip-label">Data not available</div>'}
+              <div class="tooltip-row">
+                <span class="tooltip-label">Maternal Mortality</span>
+                <span class="tooltip-value ${data.mm > 25 ? 'bad' : ''}">${data.mm}/100K</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Preterm Birth</span>
+                <span class="tooltip-value">${data.preterm}% <span class="tooltip-grade ${gradeClass}">${gradeClass}</span></span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Infant Mortality</span>
+                <span class="tooltip-value ${data.infant > 6 ? 'bad' : ''}">${data.infant}/1K</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Inadequate Prenatal</span>
+                <span class="tooltip-value ${data.prenatal > 17 ? 'bad' : ''}">${data.prenatal}%</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Policies Adopted</span>
+                <span class="tooltip-value ${data.policies >= 5 ? 'good' : ''}">${data.policies}/6</span>
+              </div>
             `);
         })
         .on('mouseout', () => tooltip.classed('visible', false));
+        
+      updateLegend();
     });
 
-    // State ranking
-    const rankingEl = document.getElementById('stateRanking');
-    const sortedStates = Object.entries(stateData).sort((a, b) => b[1] - a[1]);
-    const maxRate = sortedStates[0][1];
-
-    sortedStates.forEach(([state, rate], i) => {
-      const pct = (rate / maxRate) * 100;
-      const color = colorScale(rate);
-      const item = document.createElement('div');
-      item.className = 'state-rank-item';
-      item.innerHTML = `
-        <span class="state-rank-num">${i + 1}</span>
-        <span class="state-rank-name">${state}</span>
-        <div class="state-rank-bar">
-          <div class="state-rank-fill" style="width:${pct}%;background:${color}"></div>
-        </div>
-        <span class="state-rank-value" style="color:${color}">${rate}</span>
-      `;
-      rankingEl.appendChild(item);
-    });
+    // State table
+    const tableBody = document.querySelector('#stateTable tbody');
+    Object.entries(stateData)
+      .sort((a, b) => b[1].mm - a[1].mm)
+      .forEach(([state, d]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${state}</strong></td>
+          <td class="mono" style="color:${d.mm > 30 ? '#e63946' : d.mm < 15 ? '#2a9d8f' : '#222'}">${d.mm}</td>
+          <td class="mono">${d.preterm}%</td>
+          <td><span class="grade ${d.grade}">${d.grade}</span></td>
+          <td class="mono">${d.infant}</td>
+          <td class="mono" style="color:${d.prenatal > 18 ? '#e63946' : '#222'}">${d.prenatal}%</td>
+        `;
+        tableBody.appendChild(row);
+      });
 
     // Race chart
-    const raceData = [
-      { label: 'Black', value: 50.3, change: '+1.6%', up: true },
-      { label: 'White', value: 14.5, change: '−23.7%', up: false },
-      { label: 'Hispanic', value: 12.4, change: '−26.6%', up: false },
-      { label: 'Asian', value: 10.7, change: '−18.9%', up: false }
-    ];
-
-    const raceChartEl = document.getElementById('raceChart');
-    const maxRace = 55;
-
-    raceData.forEach(d => {
-      const pct = (d.value / maxRace) * 100;
-      const color = d.up ? '#e63946' : '#457b9d';
-      const row = document.createElement('div');
-      row.className = 'race-row';
-      row.innerHTML = `
-        <span class="race-label">${d.label}</span>
-        <div class="race-bar-container">
-          <div class="race-bar" style="width:${pct}%;background:${color}">
-            <span class="race-bar-value">${d.value}</span>
-          </div>
-          <span class="race-change ${d.up ? 'up' : 'down'}">${d.change}</span>
-        </div>
-      `;
-      raceChartEl.appendChild(row);
-    });
-
-    // Causes chart
-    new Chart(document.getElementById('causesChart'), {
+    new Chart(document.getElementById('raceChart'), {
       type: 'bar',
       data: {
-        labels: ['Hemorrhage', 'Infection', 'Blood Clots', 'Heart Disease', 'Cardiac (other)', 'Other'],
+        labels: ['Black', 'White', 'Hispanic', 'Asian'],
         datasets: [{
-          data: [18.1, 14.0, 11.5, 10.2, 10.4, 35.8],
-          backgroundColor: ['#e63946', '#f4a261', '#457b9d', '#6d6875', '#aaa', '#ddd'],
-          borderRadius: 3
+          data: [50.3, 14.5, 12.4, 10.7],
+          backgroundColor: ['#e63946', '#457b9d', '#2a9d8f', '#4ecdc4'],
+          borderRadius: 4
         }]
       },
       options: {
@@ -663,8 +429,38 @@
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { max: 40, grid: { color: '#e8e8e8' }, ticks: { callback: v => v + '%', font: { family: 'Roboto Mono', size: 10 } } },
-          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+          x: { max: 55, grid: { color: '#eee' }, ticks: { callback: v => v, font: { family: 'Roboto Mono', size: 10 } } },
+          y: { grid: { display: false }, ticks: { font: { size: 12, weight: 600 } } }
+        }
+      }
+    });
+
+    // Scatter plot: Policies vs Outcomes
+    const scatterData = Object.entries(stateData).map(([name, d]) => ({ x: d.policies, y: d.mm, name }));
+    new Chart(document.getElementById('scatterPlot'), {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          data: scatterData,
+          backgroundColor: ctx => ctx.raw.y > 30 ? '#e63946' : ctx.raw.y < 18 ? '#2a9d8f' : '#457b9d',
+          pointRadius: 8,
+          pointHoverRadius: 12
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.raw.name}: ${ctx.raw.y}/100K (${ctx.raw.x} policies)`
+            }
+          }
+        },
+        scales: {
+          x: { min: 1, max: 7, title: { display: true, text: 'Policies Adopted (out of 6)', font: { size: 11 } }, grid: { color: '#eee' } },
+          y: { min: 5, max: 50, title: { display: true, text: 'Maternal Mortality (per 100K)', font: { size: 11 } }, grid: { color: '#eee' } }
         }
       }
     });
@@ -680,7 +476,7 @@
           backgroundColor: 'rgba(69,123,157,0.1)',
           fill: true,
           tension: 0.35,
-          pointRadius: 5,
+          pointRadius: 6,
           pointBackgroundColor: ctx => ctx.raw > 30 ? '#e63946' : '#457b9d',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
@@ -692,8 +488,8 @@
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          y: { min: 10, max: 38, grid: { color: '#e8e8e8' }, ticks: { font: { family: 'Roboto Mono', size: 10 } } },
-          x: { grid: { display: false }, ticks: { font: { family: 'Roboto Mono', size: 11, weight: 600 } } }
+          y: { min: 10, max: 38, grid: { color: '#eee' } },
+          x: { grid: { display: false } }
         }
       }
     });
