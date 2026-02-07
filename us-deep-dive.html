@@ -22,6 +22,11 @@
     .section-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: #222; }
     .section-desc { font-size: 14px; color: #666; margin-bottom: 16px; max-width: 650px; }
     
+    /* Narrative transitions */
+    .narrative { background: #fafafa; padding: 24px 48px; border-bottom: 1px solid #e0e0e0; }
+    .narrative-text { font-size: 15px; color: #444; max-width: 700px; line-height: 1.7; }
+    .narrative-text strong { color: #222; }
+    
     .map-container { position: relative; background: #fafafa; border-radius: 8px; padding: 16px; margin: 16px 0; }
     #map { width: 100%; height: 420px; }
     .state { stroke: #fff; stroke-width: 1px; cursor: pointer; transition: opacity 0.15s; }
@@ -64,6 +69,8 @@
     .annotation strong { color: #b45309; }
     .annotation-red { background: #fef2f2; border-left-color: #e63946; }
     .annotation-red strong { color: #c62828; }
+    .annotation-blue { background: #eff6ff; border-left-color: #457b9d; }
+    .annotation-blue strong { color: #1e40af; }
     
     .chart-container { position: relative; margin: 16px 0; }
     .chart-title { font-family: 'Roboto Mono', monospace; font-size: 11px; font-weight: 600; color: #222; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -91,17 +98,33 @@
     .grade.D { background: #e76f51; }
     .grade.F { background: #e63946; }
     
+    /* Source citations */
+    .source-link { font-size: 10px; color: #888; margin-top: 8px; font-family: 'Roboto Mono', monospace; }
+    .source-link a { color: #457b9d; text-decoration: none; }
+    .source-link a:hover { text-decoration: underline; }
+    
+    /* Comparison bars for education/income */
+    .comparison-chart { margin: 20px 0; }
+    .comparison-row { display: flex; align-items: center; margin: 8px 0; }
+    .comparison-label { width: 180px; font-size: 12px; font-weight: 500; }
+    .comparison-bar-container { flex: 1; height: 24px; background: #eee; border-radius: 4px; position: relative; }
+    .comparison-bar { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
+    .comparison-value { font-family: 'Roboto Mono', monospace; font-size: 11px; font-weight: 600; color: white; }
+    
     .sources { background: #fafafa; padding: 24px 48px; font-size: 11px; color: #888; }
     .sources h3 { font-family: 'Roboto Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; color: #666; }
     .sources a { color: #457b9d; text-decoration: none; }
     .sources a:hover { text-decoration: underline; }
+    .sources ul { list-style: none; margin: 0; padding: 0; }
+    .sources li { margin: 6px 0; line-height: 1.5; }
     .footer { padding: 16px 48px; font-size: 10px; color: #aaa; text-align: center; font-family: 'Roboto Mono', monospace; }
     @media (max-width: 768px) {
-      .header, .section, .sources { padding-left: 20px; padding-right: 20px; }
+      .header, .section, .sources, .narrative { padding-left: 20px; padding-right: 20px; }
       h1 { font-size: 26px; }
       .big-number-grid { grid-template-columns: repeat(2, 1fr); }
       .policy-grid { grid-template-columns: 1fr; }
       #map { height: 300px; }
+      .comparison-label { width: 120px; font-size: 10px; }
     }
   </style>
 </head>
@@ -111,9 +134,10 @@
       <a href="index.html" class="back-link">← Back to Global</a>
       <div class="kicker">United States Deep Dive</div>
       <h1>The Maternal Health Crisis</h1>
-      <div class="subtitle">Explore state-by-state data on maternal mortality, preterm birth, infant mortality, prenatal care access, and policy adoption.</div>
+      <div class="subtitle">In the world's wealthiest nation, mothers are dying at rates that rival developing countries. This is a story of systemic failures — across race, income, education, and geography.</div>
     </div>
 
+    <!-- PART 1: THE BIG PICTURE -->
     <div class="section">
       <div class="big-number-grid">
         <div class="big-number"><div class="big-number-value red">669</div><div class="big-number-label">Maternal Deaths 2023</div></div>
@@ -121,8 +145,14 @@
         <div class="big-number"><div class="big-number-value red">10.4%</div><div class="big-number-label">Preterm Birth Rate</div></div>
         <div class="big-number"><div class="big-number-value blue">5.6</div><div class="big-number-label">Infant Deaths/1K</div></div>
       </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/nchs/data/hestat/maternal-mortality/2023/maternal-mortality-rates-2023.htm" target="_blank">CDC NCHS Maternal Mortality 2023</a></div>
     </div>
 
+    <div class="narrative">
+      <p class="narrative-text">These numbers represent a national failure. The U.S. has the <strong>highest maternal mortality rate of any developed nation</strong> — more than triple the rate of most European countries. But the crisis isn't distributed equally. Where you live, what you earn, and especially the color of your skin dramatically affect whether you survive childbirth.</p>
+    </div>
+
+    <!-- PART 2: GEOGRAPHIC DISPARITIES -->
     <div class="section">
       <div class="section-title">Interactive State Map</div>
       <div class="section-desc">Hover over any state to see detailed maternal and infant health metrics. Toggle between different metrics to see how states compare.</div>
@@ -139,8 +169,74 @@
         <div class="tooltip" id="tooltip"></div>
         <div class="legend" id="legend"></div>
       </div>
+      <div class="source-link">Source: <a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025 Report Card</a>, <a href="https://www.americashealthrankings.org/explore/measures/maternal_mortality_a" target="_blank">America's Health Rankings</a></div>
     </div>
 
+    <div class="narrative">
+      <p class="narrative-text">The map reveals a stark North-South divide. <strong>Southern states consistently have the worst outcomes</strong> — Mississippi, Louisiana, Alabama, and Georgia form a corridor of crisis. Meanwhile, states like California, Massachusetts, and Vermont have achieved rates comparable to Europe through coordinated policy action.</p>
+    </div>
+
+    <!-- PART 3: THE RACIAL DIVIDE -->
+    <div class="section">
+      <div class="section-title">The Racial Divide</div>
+      <div class="section-desc">Black women face 3.5× the maternal mortality risk of white women — a disparity that persists across all income and education levels.</div>
+      
+      <div class="chart-container" style="height: 220px;">
+        <canvas id="raceChart"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/maternal-mortality/php/pregnancy-mortality-surveillance-data/" target="_blank">CDC Pregnancy Mortality Surveillance System, 2023</a></div>
+      
+      <div class="annotation-red annotation">
+        <strong>Black women with a college degree have higher maternal mortality (40.2/100K) than white women who never finished high school (25.0/100K).</strong> Education doesn't protect Black mothers the way it protects white mothers.
+      </div>
+    </div>
+
+    <div class="narrative">
+      <p class="narrative-text">This disparity cannot be explained by income, education, or access to care alone. Research points to <strong>chronic stress from experiencing racism</strong> — a phenomenon called "weathering" — that causes biological wear on the body over time. It also reflects bias in the healthcare system: Black women's pain is more likely to be dismissed, their symptoms ignored.</p>
+    </div>
+
+    <!-- PART 4: EDUCATION LEVEL (NEW SECTION) -->
+    <div class="section">
+      <div class="section-title">Education Level: A Protective Factor — But Not for Everyone</div>
+      <div class="section-desc">Higher education is associated with better health outcomes. But the protective effect varies dramatically by race.</div>
+      
+      <div class="chart-container" style="height: 300px;">
+        <canvas id="educationChart"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/mmwr/volumes/68/wr/mm6835a3.htm" target="_blank">CDC MMWR: Racial/Ethnic Disparities in Pregnancy-Related Deaths, 2007–2016</a></div>
+      
+      <div class="annotation-blue annotation">
+        <strong>The education gap:</strong> For white women, a college degree cuts mortality risk by 69% compared to those without a high school diploma. For Black women, that reduction is only 12%. Systemic racism erases the health benefits of education.
+      </div>
+    </div>
+
+    <!-- PART 5: INCOME & SOCIOECONOMIC STATUS (NEW SECTION) -->
+    <div class="section">
+      <div class="section-title">Income & Poverty: The Deadliest Divide</div>
+      <div class="section-desc">Socioeconomic status is one of the strongest predictors of maternal mortality. Women in the poorest communities face dramatically higher risks.</div>
+      
+      <div class="chart-container" style="height: 280px;">
+        <canvas id="incomeChart"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7792749/" target="_blank">PMC: Trends and Social Inequalities in Maternal Mortality, 1969-2018</a></div>
+      
+      <div class="big-number-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="big-number"><div class="big-number-value red">2.4×</div><div class="big-number-label">Risk for Low-Income Women</div></div>
+        <div class="big-number"><div class="big-number-value red">120%</div><div class="big-number-label">Higher Mortality in Most Deprived Areas</div></div>
+        <div class="big-number"><div class="big-number-value red">50%</div><div class="big-number-label">Higher in Rural vs Urban</div></div>
+      </div>
+      <div class="source-link">Source: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7345089/" target="_blank">PMC: Socioeconomic Status and Maternal Mortality</a></div>
+      
+      <div class="annotation annotation">
+        <strong>Medicaid matters:</strong> Medicaid covers 43% of all U.S. births. In states that expanded Medicaid under the ACA, maternal mortality rates are significantly lower. The 10 states that haven't expanded Medicaid have 50% higher maternal mortality on average.
+      </div>
+    </div>
+
+    <div class="narrative">
+      <p class="narrative-text">The connection between poverty and maternal death isn't mysterious. Poor women are more likely to have <strong>chronic health conditions, less access to prenatal care, higher stress levels,</strong> and to deliver at under-resourced hospitals. But the gap has been <strong>widening, not narrowing</strong> — between 2002 and 2018, the disparity between the richest and poorest areas grew larger.</p>
+    </div>
+
+    <!-- PART 6: STATE RANKINGS -->
     <div class="section">
       <div class="section-title">State Rankings: Full Data</div>
       <div class="section-desc">Complete state-by-state breakdown with preterm birth grades from March of Dimes.</div>
@@ -160,21 +256,10 @@
           <tbody></tbody>
         </table>
       </div>
+      <div class="source-link">Source: <a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025 Report Card</a>, <a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts State Analysis</a></div>
     </div>
 
-    <div class="section">
-      <div class="section-title">The Racial Divide</div>
-      <div class="section-desc">Black women face 3.5× the maternal mortality risk of white women — and the gap is even worse in some states.</div>
-      
-      <div class="chart-container" style="height: 220px;">
-        <canvas id="raceChart"></canvas>
-      </div>
-      
-      <div class="annotation-red annotation">
-        <strong>In Georgia, Black maternal mortality reached 62.1 per 100K</strong> — more than double the rate for white women (27.1) in the same state.
-      </div>
-    </div>
-
+    <!-- PART 7: POLICY -->
     <div class="section">
       <div class="section-title">Policy Adoption by State</div>
       <div class="section-desc">States that adopt supportive policies tend to have better maternal health outcomes.</div>
@@ -187,12 +272,14 @@
         <div class="policy-card"><div class="policy-value bad">11</div><div class="policy-label">States Requiring Mental Health Screening</div></div>
         <div class="policy-card"><div class="policy-value good">50</div><div class="policy-label">States with Mortality Review Committees</div></div>
       </div>
+      <div class="source-link">Source: <a href="https://www.commonwealthfund.org/publications/scorecard/2024/jul/2024-state-scorecard-womens-health-and-reproductive-care" target="_blank">Commonwealth Fund 2024 State Scorecard</a>, <a href="https://www.kff.org/womens-health-policy/state-indicator/medicaid-postpartum-coverage-extension/" target="_blank">KFF Medicaid Policy Tracker</a></div>
       
       <div class="annotation">
         <strong>California's success story:</strong> The state invested heavily in quality improvement, mortality review, and expanded coverage. Result: a maternal mortality rate (10.1) that's 4× lower than Tennessee (42.1).
       </div>
     </div>
 
+    <!-- PART 8: POLICY CORRELATION -->
     <div class="section">
       <div class="section-title">Correlation: Policy vs Outcomes</div>
       <div class="section-desc">States with more supportive policies tend to have lower maternal mortality — but policy alone isn't destiny.</div>
@@ -200,22 +287,60 @@
       <div class="scatter-container">
         <canvas id="scatterPlot"></canvas>
       </div>
+      <div class="source-link">Source: Analysis of <a href="https://www.commonwealthfund.org" target="_blank">Commonwealth Fund</a> policy data and <a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC NCHS</a> mortality data</div>
     </div>
 
+    <div class="narrative">
+      <p class="narrative-text">The correlation is clear but not perfect. Some states with strong policies still struggle with outcomes, suggesting that <strong>implementation matters as much as policy.</strong> And some of the most dramatic improvements — like California's 55% reduction in maternal mortality — required sustained, coordinated effort over many years.</p>
+    </div>
+
+    <!-- PART 9: TREND -->
     <div class="section">
       <div class="section-title">The COVID Spike & Recovery</div>
+      <div class="section-desc">The pandemic exposed and exacerbated existing vulnerabilities in maternal care.</div>
+      
       <div class="chart-container" style="height: 240px;">
         <canvas id="trendChart"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/nchs/nvss/vsrr/provisional-maternal-deaths-rates.htm" target="_blank">CDC NCHS Provisional Maternal Death Rates</a></div>
+      
+      <div class="annotation-red annotation">
+        <strong>2021 was the deadliest year on record.</strong> Maternal mortality spiked to 32.9 per 100,000 — a 38% increase from pre-pandemic levels. While rates have since declined, they remain higher than 2019.
+      </div>
+    </div>
+
+    <!-- PART 10: PREVENTABILITY -->
+    <div class="section">
+      <div class="section-title">The Most Devastating Statistic</div>
+      <div class="section-desc">State maternal mortality review committees have analyzed thousands of pregnancy-related deaths. Their conclusion:</div>
+      
+      <div class="big-number-grid" style="grid-template-columns: 1fr;">
+        <div class="big-number" style="padding: 40px;">
+          <div class="big-number-value red" style="font-size: 72px;">84%</div>
+          <div class="big-number-label" style="font-size: 14px; margin-top: 12px;">of pregnancy-related deaths are preventable</div>
+        </div>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/maternal-mortality/php/data-research/mmrc/" target="_blank">CDC Maternal Mortality Review Committee Data</a></div>
+      
+      <div class="annotation-red annotation">
+        <strong>These are not inevitable tragedies.</strong> With better access to care, earlier intervention for warning signs, improved care quality, and addressing social determinants of health, the vast majority of these deaths could be prevented.
       </div>
     </div>
 
     <div class="sources">
-      <h3>Data Sources</h3>
-      <a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC NCHS</a> · 
-      <a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025 Report Card</a> · 
-      <a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts</a> · 
-      <a href="https://www.americashealthrankings.org" target="_blank">America's Health Rankings</a> · 
-      <a href="https://www.commonwealthfund.org" target="_blank">Commonwealth Fund</a>
+      <h3>All Data Sources</h3>
+      <ul>
+        <li><a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC National Center for Health Statistics - Maternal Mortality Data</a></li>
+        <li><a href="https://www.cdc.gov/mmwr/volumes/68/wr/mm6835a3.htm" target="_blank">CDC MMWR: Racial/Ethnic Disparities in Pregnancy-Related Deaths, 2007–2016</a></li>
+        <li><a href="https://www.cdc.gov/maternal-mortality/php/pregnancy-mortality-surveillance-data/" target="_blank">CDC Pregnancy Mortality Surveillance System</a></li>
+        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7792749/" target="_blank">PMC: Trends and Social Inequalities in Maternal Mortality, 1969-2018</a></li>
+        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7345089/" target="_blank">PMC: Socioeconomic Status and Maternal Mortality</a></li>
+        <li><a href="https://www.kff.org/racial-equity-and-health-policy/racial-disparities-in-maternal-and-infant-health-current-status-and-key-issues/" target="_blank">KFF: Racial Disparities in Maternal and Infant Health</a></li>
+        <li><a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025 Report Card</a></li>
+        <li><a href="https://www.commonwealthfund.org/publications/scorecard/2024/jul/2024-state-scorecard-womens-health-and-reproductive-care" target="_blank">Commonwealth Fund 2024 State Scorecard</a></li>
+        <li><a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts State Maternal Mortality Analysis</a></li>
+        <li><a href="https://www.americashealthrankings.org/explore/measures/maternal_mortality_a" target="_blank">America's Health Rankings - Maternal Mortality</a></li>
+      </ul>
     </div>
 
     <div class="footer">MATERNAL MORTALITY = DEATHS PER 100,000 LIVE BIRTHS | PRETERM = BIRTHS BEFORE 37 WEEKS | INFANT MORTALITY = DEATHS PER 1,000 BIRTHS</div>
@@ -416,10 +541,11 @@
     new Chart(document.getElementById('raceChart'), {
       type: 'bar',
       data: {
-        labels: ['Black', 'White', 'Hispanic', 'Asian'],
+        labels: ['Black', 'AI/AN', 'White', 'Hispanic', 'Asian'],
         datasets: [{
-          data: [50.3, 14.5, 12.4, 10.7],
-          backgroundColor: ['#e63946', '#457b9d', '#2a9d8f', '#4ecdc4'],
+          label: 'Deaths per 100,000 live births',
+          data: [49.4, 29.7, 14.9, 12.3, 10.7],
+          backgroundColor: ['#e63946', '#e76f51', '#457b9d', '#2a9d8f', '#4ecdc4'],
           borderRadius: 4
         }]
       },
@@ -427,10 +553,121 @@
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.raw} deaths per 100,000 live births`
+            }
+          }
+        },
         scales: {
           x: { max: 55, grid: { color: '#eee' }, ticks: { callback: v => v, font: { family: 'Roboto Mono', size: 10 } } },
           y: { grid: { display: false }, ticks: { font: { size: 12, weight: 600 } } }
+        }
+      }
+    });
+
+    // Education chart (NEW)
+    new Chart(document.getElementById('educationChart'), {
+      type: 'bar',
+      data: {
+        labels: ['< High School', 'High School', 'Some College', 'College+'],
+        datasets: [
+          {
+            label: 'Black Women',
+            data: [45.6, 59.1, 41.0, 40.2],
+            backgroundColor: '#e63946',
+            borderRadius: 4
+          },
+          {
+            label: 'White Women',
+            data: [25.0, 25.2, 11.7, 7.8],
+            backgroundColor: '#457b9d',
+            borderRadius: 4
+          },
+          {
+            label: 'Hispanic Women',
+            data: [12.6, 11.2, 9.4, 9.3],
+            backgroundColor: '#2a9d8f',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { 
+            position: 'top',
+            labels: { font: { size: 11 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.raw} per 100,000`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'Roboto Mono', size: 10 } } },
+          y: { 
+            max: 65, 
+            grid: { color: '#eee' }, 
+            ticks: { font: { family: 'Roboto Mono', size: 10 } },
+            title: { display: true, text: 'Deaths per 100,000', font: { size: 10 } }
+          }
+        }
+      }
+    });
+
+    // Income/Deprivation chart (NEW)
+    new Chart(document.getElementById('incomeChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Most Affluent Areas', 'Middle Areas', 'Most Deprived Areas'],
+        datasets: [
+          {
+            label: 'All Women',
+            data: [12.5, 18.2, 27.5],
+            backgroundColor: '#457b9d',
+            borderRadius: 4
+          },
+          {
+            label: 'Black Women',
+            data: [32.1, 41.8, 55.2],
+            backgroundColor: '#e63946',
+            borderRadius: 4
+          },
+          {
+            label: 'White Women',
+            data: [10.2, 14.8, 22.5],
+            backgroundColor: '#4ecdc4',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { 
+            position: 'top',
+            labels: { font: { size: 11 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.raw} per 100,000`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'Roboto Mono', size: 10 } } },
+          y: { 
+            max: 60, 
+            grid: { color: '#eee' }, 
+            ticks: { font: { family: 'Roboto Mono', size: 10 } },
+            title: { display: true, text: 'Deaths per 100,000', font: { size: 10 } }
+          }
         }
       }
     });
@@ -486,9 +723,16 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.raw} deaths per 100,000`
+            }
+          }
+        },
         scales: {
-          y: { min: 10, max: 38, grid: { color: '#eee' } },
+          y: { min: 10, max: 38, grid: { color: '#eee' }, title: { display: true, text: 'Deaths per 100,000', font: { size: 10 } } },
           x: { grid: { display: false } }
         }
       }
