@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maternal Mortality by Country | 2023-2024 Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+    }
+    .header {
+      background: linear-gradient(135deg, #2d1f3d 0%, #4a1942 100%);
+      color: white;
+      padding: 48px 48px 40px;
+    }
+    .kicker {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: #ff9ecd;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 40px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+    .subtitle {
+      font-size: 20px;
+      font-weight: 400;
+      opacity: 0.9;
+      max-width: 650px;
+    }
+    .byline {
+      margin-top: 24px;
+      font-size: 13px;
+      opacity: 0.7;
+    }
+    .section {
+      padding: 40px 48px;
+      border-bottom: 1px solid #eee;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+    }
+    .section-desc {
+      font-size: 15px;
+      color: #666;
+      margin-bottom: 24px;
+      max-width: 700px;
+    }
+    .chart-container {
+      position: relative;
+      height: 450px;
+      margin: 20px 0;
+    }
+    .chart-container-tall {
+      height: 520px;
+    }
+    .callout {
+      background: linear-gradient(135deg, #fff0f5 0%, #ffe4ec 100%);
+      border-left: 4px solid #e6194b;
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .callout-stat {
+      font-size: 36px;
+      font-weight: 900;
+      color: #c41e3a;
+    }
+    .callout-text {
+      font-size: 15px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .callout-green {
+      background: linear-gradient(135deg, #f0fff4 0%, #e4ffec 100%);
+      border-left-color: #3cb44b;
+    }
+    .callout-green .callout-stat {
+      color: #2e8b3c;
+    }
+    .grid-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .stat-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 28px;
+      font-weight: 900;
+      color: #4a1942;
+    }
+    .stat-num.bad { color: #c41e3a; }
+    .stat-num.good { color: #2e8b3c; }
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .comparison-bar {
+      display: flex;
+      align-items: center;
+      margin: 12px 0;
+      gap: 12px;
+    }
+    .comparison-label {
+      width: 140px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: right;
+    }
+    .comparison-track {
+      flex: 1;
+      height: 28px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      position: relative;
+    }
+    .comparison-fill {
+      height: 100%;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      min-width: 40px;
+    }
+    .disparity-section {
+      background: #fef6f8;
+      padding: 32px;
+      border-radius: 12px;
+      margin: 24px 0;
+    }
+    .disparity-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #c41e3a;
+      margin-bottom: 16px;
+    }
+    .sources {
+      background: #f8f9fa;
+      padding: 32px 48px;
+      font-size: 13px;
+      color: #666;
+    }
+    .sources h3 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      color: #333;
+    }
+    .sources ul {
+      list-style: none;
+      columns: 2;
+      column-gap: 40px;
+    }
+    .sources li {
+      margin-bottom: 8px;
+      break-inside: avoid;
+    }
+    .sources a {
+      color: #4a1942;
+      text-decoration: none;
+    }
+    .sources a:hover {
+      text-decoration: underline;
+    }
+    .footer {
+      padding: 24px 48px;
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+    }
+    .highlight-box {
+      display: flex;
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .highlight-item {
+      flex: 1;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .highlight-worst {
+      background: linear-gradient(135deg, #fff0f0 0%, #ffe4e4 100%);
+      border: 2px solid #ffcccc;
+    }
+    .highlight-best {
+      background: linear-gradient(135deg, #f0fff4 0%, #e4ffec 100%);
+      border: 2px solid #ccffcc;
+    }
+    .highlight-num {
+      font-size: 42px;
+      font-weight: 900;
+    }
+    .highlight-worst .highlight-num { color: #c41e3a; }
+    .highlight-best .highlight-num { color: #2e8b3c; }
+    .highlight-country {
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .highlight-label {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+    @media (max-width: 768px) {
+      .header, .section, .sources { padding-left: 24px; padding-right: 24px; }
+      h1 { font-size: 28px; }
+      .grid-stats { grid-template-columns: repeat(2, 1fr); }
+      .highlight-box { flex-direction: column; }
+      .sources ul { columns: 1; }
+      .comparison-label { width: 100px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="kicker">🏥 Global Health</div>
+      <h1>The Childbirth Divide</h1>
+      <div class="subtitle">Every two minutes, a woman dies from preventable pregnancy-related causes. The gap between the safest and deadliest countries is staggering.</div>
+      <div class="byline">Data: WHO, UNICEF, World Bank, Commonwealth Fund | 2023-2024</div>
+    </div>
+
+    <div class="section">
+      <div class="grid-stats">
+        <div class="stat-card">
+          <div class="stat-num bad">260K</div>
+          <div class="stat-label">Women died in 2023</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num bad">700+</div>
+          <div class="stat-label">Deaths per day</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">92%</div>
+          <div class="stat-label">In low-income countries</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num good">-40%</div>
+          <div class="stat-label">Decline since 2000</div>
+        </div>
+      </div>
+
+      <div class="highlight-box">
+        <div class="highlight-item highlight-worst">
+          <div class="highlight-num">1,223</div>
+          <div class="highlight-country">🇸🇸 South Sudan</div>
+          <div class="highlight-label">deaths per 100,000 births</div>
+        </div>
+        <div class="highlight-item highlight-best">
+          <div class="highlight-num">0</div>
+          <div class="highlight-country">🇳🇴 Norway</div>
+          <div class="highlight-label">deaths per 100,000 births</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">The World's Most Dangerous Countries for Childbirth</div>
+      <div class="section-desc">Sub-Saharan Africa accounts for 70% of all maternal deaths. Conflict, poverty, and lack of skilled healthcare workers make childbirth deadly.</div>
+      <div class="chart-container chart-container-tall">
+        <canvas id="worstChart"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">High-Income Countries: The US Stands Alone</div>
+      <div class="section-desc">Among wealthy nations, the United States has a maternal mortality rate more than double most peer countries — and 22x higher than Norway.</div>
+      <div class="chart-container">
+        <canvas id="richChart"></canvas>
+      </div>
+      <div class="callout">
+        <div class="callout-stat">22 per 100K</div>
+        <div class="callout-text">US maternal mortality rate — higher than Chile, New Zealand, and most of Europe combined</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="disparity-section">
+        <div class="disparity-title">⚠️ Racial Disparities in the United States</div>
+        <div class="comparison-bar">
+          <div class="comparison-label">White women</div>
+          <div class="comparison-track">
+            <div class="comparison-fill" style="width: 30%; background: #f58231;">~15</div>
+          </div>
+        </div>
+        <div class="comparison-bar">
+          <div class="comparison-label">Black women</div>
+          <div class="comparison-track">
+            <div class="comparison-fill" style="width: 100%; background: #c41e3a;">~50</div>
+          </div>
+        </div>
+        <p style="font-size: 14px; color: #666; margin-top: 16px;">Black women in the US are <strong>3.3x more likely</strong> to die from pregnancy-related causes than white women. Similar disparities exist in the UK (4x for Black women) and Australia (2x for Aboriginal women).</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">What Makes Countries Safe?</div>
+      <div class="section-desc">Universal healthcare, access to midwives, and postpartum support are key differentiators.</div>
+      <div class="chart-container">
+        <canvas id="factorsChart"></canvas>
+      </div>
+      
+      <div class="callout callout-green">
+        <div class="callout-stat">Nearly 100%</div>
+        <div class="callout-text">Of births in high-income countries have a skilled attendant (midwife, doctor, or nurse). In low-income countries, only 73%.</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Global Progress: 2000 → 2023</div>
+      <div class="section-desc">The world has made progress, but not fast enough. The SDG target of &lt;70 deaths per 100K by 2030 requires 15% annual reduction — rarely achieved.</div>
+      <div class="chart-container">
+        <canvas id="progressChart"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Main Causes of Maternal Death</div>
+      <div class="section-desc">75% of maternal deaths come from just five preventable causes.</div>
+      <div class="chart-container">
+        <canvas id="causesChart"></canvas>
+      </div>
+    </div>
+
+    <div class="sources">
+      <h3>Data Sources</h3>
+      <ul>
+        <li><a href="https://www.who.int/news-room/fact-sheets/detail/maternal-mortality" target="_blank">WHO: Maternal Mortality Fact Sheet (2024)</a></li>
+        <li><a href="https://data.unicef.org/topic/maternal-health/maternal-mortality/" target="_blank">UNICEF: Maternal Mortality Rates and Statistics</a></li>
+        <li><a href="https://data.worldbank.org/indicator/SH.STA.MMRT" target="_blank">World Bank: Maternal Mortality Ratio</a></li>
+        <li><a href="https://worldpopulationreview.com/country-rankings/maternal-mortality-rate-by-country" target="_blank">World Population Review: MMR by Country 2025</a></li>
+        <li><a href="https://www.commonwealthfund.org/publications/issue-briefs/2024/jun/insights-us-maternal-mortality-crisis-international-comparison" target="_blank">Commonwealth Fund: US Maternal Mortality Crisis (2024)</a></li>
+        <li><a href="https://www.cnn.com/2024/06/04/health/maternal-deaths-high-income-nations" target="_blank">CNN: US vs High-Income Nations Analysis</a></li>
+        <li><a href="https://www.cia.gov/the-world-factbook/field/maternal-mortality-ratio/country-comparison/" target="_blank">CIA World Factbook: Maternal Mortality Comparison</a></li>
+        <li><a href="https://ourworldindata.org/grapher/maternal-mortality" target="_blank">Our World in Data: Maternal Mortality</a></li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      Maternal Mortality Ratio (MMR) = maternal deaths per 100,000 live births. Data represents most recent available estimates (2020-2023). 
+      Maternal death defined as death during pregnancy or within 42 days of termination of pregnancy from any cause related to or aggravated by pregnancy.
+    </div>
+  </div>
+
+  <script>
+    const colors = {
+      red: '#c41e3a',
+      orange: '#f58231',
+      yellow: '#ffd166',
+      green: '#3cb44b',
+      blue: '#4363d8',
+      purple: '#4a1942',
+      pink: '#ff9ecd'
+    };
+
+    // Chart 1: Worst Countries
+    new Chart(document.getElementById('worstChart'), {
+      type: 'bar',
+      data: {
+        labels: [
+          '🇸🇸 South Sudan', '🇹🇩 Chad', '🇳🇬 Nigeria', '🇨🇫 Central African Rep.', 
+          '🇬🇼 Guinea-Bissau', '🇱🇷 Liberia', '🇸🇴 Somalia', '🇦🇫 Afghanistan',
+          '🇱🇸 Lesotho', '🇬🇳 Guinea'
+        ],
+        datasets: [{
+          label: 'Deaths per 100,000 births',
+          data: [1223, 1063, 1047, 835, 725, 652, 621, 620, 566, 553],
+          backgroundColor: [
+            colors.red, colors.red, colors.red, colors.orange, colors.orange,
+            colors.orange, colors.orange, colors.orange, colors.yellow, colors.yellow
+          ],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1a2e',
+            callbacks: {
+              label: ctx => ctx.raw + ' deaths per 100,000 births'
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'MATERNAL DEATHS PER 100,000 LIVE BIRTHS', font: { size: 11, weight: '600' }, color: '#666' },
+            grid: { color: 'rgba(0,0,0,0.06)' },
+            max: 1400
+          },
+          y: {
+            grid: { display: false },
+            ticks: { font: { size: 13, weight: '600' } }
+          }
+        }
+      }
+    });
+
+    // Chart 2: Rich Countries
+    new Chart(document.getElementById('richChart'), {
+      type: 'bar',
+      data: {
+        labels: [
+          '🇺🇸 United States', '🇨🇱 Chile', '🇳🇿 New Zealand', '🇬🇧 United Kingdom',
+          '🇰🇷 South Korea', '🇨🇦 Canada', '🇫🇷 France', '🇯🇵 Japan',
+          '🇩🇪 Germany', '🇳🇱 Netherlands', '🇸🇪 Sweden', '🇨🇭 Switzerland', '🇳🇴 Norway'
+        ],
+        datasets: [{
+          label: 'Deaths per 100,000 births',
+          data: [22, 14, 14, 10, 8, 8, 8, 4, 4, 4, 3, 1, 0],
+          backgroundColor: ctx => {
+            const val = ctx.raw;
+            if (val >= 20) return colors.red;
+            if (val >= 10) return colors.orange;
+            if (val >= 5) return colors.yellow;
+            return colors.green;
+          },
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.raw + ' deaths per 100,000 births'
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'MATERNAL DEATHS PER 100,000 LIVE BIRTHS', font: { size: 11, weight: '600' }, color: '#666' },
+            grid: { color: 'rgba(0,0,0,0.06)' },
+            max: 28
+          },
+          y: {
+            grid: { display: false },
+            ticks: { font: { size: 12, weight: '600' } }
+          }
+        }
+      }
+    });
+
+    // Chart 3: Contributing Factors
+    new Chart(document.getElementById('factorsChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Midwives per 1,000 births', 'Paid maternity leave (weeks)', 'Health coverage (%)'],
+        datasets: [
+          {
+            label: 'Norway',
+            data: [58, 49, 100],
+            backgroundColor: colors.green,
+            borderRadius: 6
+          },
+          {
+            label: 'United States',
+            data: [4, 0, 89],
+            backgroundColor: colors.red,
+            borderRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { font: { size: 12, weight: '600' }, padding: 16 }
+          }
+        },
+        scales: {
+          y: {
+            title: { display: true, text: 'VALUE', font: { size: 11, weight: '600' }, color: '#666' },
+            grid: { color: 'rgba(0,0,0,0.06)' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11, weight: '500' } }
+          }
+        }
+      }
+    });
+
+    // Chart 4: Progress Over Time
+    new Chart(document.getElementById('progressChart'), {
+      type: 'line',
+      data: {
+        labels: ['2000', '2005', '2010', '2015', '2020', '2023', '2030 Target'],
+        datasets: [
+          {
+            label: 'Global MMR',
+            data: [342, 310, 280, 250, 223, 197, null],
+            borderColor: colors.purple,
+            backgroundColor: colors.purple + '20',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 6,
+            pointBackgroundColor: colors.purple,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            borderWidth: 3
+          },
+          {
+            label: 'SDG Target',
+            data: [null, null, null, null, null, null, 70],
+            borderColor: colors.green,
+            backgroundColor: colors.green,
+            pointRadius: 10,
+            pointStyle: 'star',
+            borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { font: { size: 12, weight: '600' } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.raw ? ctx.raw + ' deaths per 100,000' : ''
+            }
+          }
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 400,
+            title: { display: true, text: 'DEATHS PER 100,000 BIRTHS', font: { size: 11, weight: '600' }, color: '#666' },
+            grid: { color: 'rgba(0,0,0,0.06)' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 12, weight: '600' } }
+          }
+        }
+      }
+    });
+
+    // Chart 5: Causes
+    new Chart(document.getElementById('causesChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Severe bleeding', 'Infections', 'High blood pressure', 'Delivery complications', 'Unsafe abortion', 'Other causes'],
+        datasets: [{
+          data: [27, 11, 14, 9, 8, 31],
+          backgroundColor: [colors.red, colors.orange, colors.purple, colors.blue, colors.yellow, '#ccc'],
+          borderWidth: 0,
+          spacing: 3,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '55%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { font: { size: 12, weight: '500' }, padding: 12 }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.label + ': ' + ctx.raw + '% of deaths'
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
