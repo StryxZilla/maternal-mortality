@@ -32,7 +32,7 @@
     .state { stroke: #fff; stroke-width: 1px; cursor: pointer; transition: opacity 0.15s; }
     .state:hover { opacity: 0.8; stroke: #222; stroke-width: 2px; }
     
-    .tooltip { position: absolute; background: #222; color: white; padding: 16px 20px; border-radius: 8px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; min-width: 240px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .tooltip { position: absolute; background: #222; color: white; padding: 16px 20px; border-radius: 8px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; min-width: 260px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .tooltip.visible { opacity: 1; }
     .tooltip-title { font-weight: 700; font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid #444; padding-bottom: 8px; }
     .tooltip-row { display: flex; justify-content: space-between; margin: 6px 0; }
@@ -155,7 +155,7 @@
     <!-- PART 2: GEOGRAPHIC DISPARITIES -->
     <div class="section">
       <div class="section-title">Interactive State Map</div>
-      <div class="section-desc">Hover over any state to see detailed maternal and infant health metrics. Toggle between different metrics to see how states compare.</div>
+      <div class="section-desc">Hover over any state to see detailed maternal and infant health metrics, plus socioeconomic factors like poverty rate, Medicaid expansion status, and uninsured rate. Toggle between different metrics to see how states compare.</div>
       
       <div class="metric-toggle">
         <button class="active" data-metric="maternal">Maternal Mortality</button>
@@ -169,7 +169,7 @@
         <div class="tooltip" id="tooltip"></div>
         <div class="legend" id="legend"></div>
       </div>
-      <div class="source-link">Source: <a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025 Report Card</a>, <a href="https://www.americashealthrankings.org/explore/measures/maternal_mortality_a" target="_blank">America's Health Rankings</a></div>
+      <div class="source-link">Sources: <a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025</a>, <a href="https://www.americashealthrankings.org/explore/measures/maternal_mortality_a" target="_blank">America's Health Rankings</a>, <a href="https://www2.census.gov/library/publications/2024/demo/acsbr-022.pdf" target="_blank">Census Bureau 2023</a>, <a href="https://www.kff.org/medicaid/issue-brief/status-of-state-medicaid-expansion-decisions-interactive-map/" target="_blank">KFF Medicaid Tracker</a></div>
     </div>
 
     <div class="narrative">
@@ -340,6 +340,9 @@
         <li><a href="https://www.commonwealthfund.org/publications/scorecard/2024/jul/2024-state-scorecard-womens-health-and-reproductive-care" target="_blank">Commonwealth Fund 2024 State Scorecard</a></li>
         <li><a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts State Maternal Mortality Analysis</a></li>
         <li><a href="https://www.americashealthrankings.org/explore/measures/maternal_mortality_a" target="_blank">America's Health Rankings - Maternal Mortality</a></li>
+        <li><a href="https://www2.census.gov/library/publications/2024/demo/acsbr-022.pdf" target="_blank">U.S. Census Bureau - Poverty in States 2023 (ACS)</a></li>
+        <li><a href="https://www.kff.org/medicaid/issue-brief/status-of-state-medicaid-expansion-decisions-interactive-map/" target="_blank">KFF: Status of State Medicaid Expansion Decisions</a></li>
+        <li><a href="https://www.census.gov/library/publications/2024/demo/p60-281.html" target="_blank">U.S. Census Bureau - Health Insurance Coverage 2023</a></li>
       </ul>
     </div>
 
@@ -347,58 +350,59 @@
   </div>
 
   <script>
-    // Comprehensive state data
+    // Comprehensive state data with socioeconomic indicators
+    // Sources: CDC, Census Bureau (2023 ACS), KFF Medicaid Expansion Tracker
     const stateData = {
-      'Alabama': { mm: 36.5, preterm: 12.1, grade: 'F', infant: 7.6, prenatal: 19.2, policies: 3 },
-      'Alaska': { mm: 19.2, preterm: 9.8, grade: 'B', infant: 5.8, prenatal: 18.5, policies: 3 },
-      'Arizona': { mm: 21.8, preterm: 10.1, grade: 'C', infant: 5.4, prenatal: 15.8, policies: 4 },
-      'Arkansas': { mm: 37.2, preterm: 11.8, grade: 'F', infant: 7.8, prenatal: 21.3, policies: 2 },
-      'California': { mm: 10.1, preterm: 9.2, grade: 'A', infant: 4.2, prenatal: 12.1, policies: 6 },
-      'Colorado': { mm: 16.2, preterm: 9.4, grade: 'B', infant: 4.8, prenatal: 14.2, policies: 5 },
-      'Connecticut': { mm: 12.1, preterm: 9.6, grade: 'B', infant: 4.6, prenatal: 11.8, policies: 5 },
-      'Delaware': { mm: 18.5, preterm: 10.8, grade: 'C', infant: 6.2, prenatal: 14.5, policies: 4 },
-      'Florida': { mm: 22.1, preterm: 10.9, grade: 'D', infant: 6.1, prenatal: 16.8, policies: 3 },
-      'Georgia': { mm: 33.9, preterm: 11.5, grade: 'F', infant: 7.2, prenatal: 18.9, policies: 3 },
-      'Hawaii': { mm: 15.8, preterm: 10.2, grade: 'C', infant: 5.1, prenatal: 12.4, policies: 4 },
-      'Idaho': { mm: 17.5, preterm: 9.8, grade: 'B', infant: 5.2, prenatal: 15.1, policies: 2 },
-      'Illinois': { mm: 19.2, preterm: 10.5, grade: 'C', infant: 5.8, prenatal: 14.8, policies: 5 },
-      'Indiana': { mm: 32.1, preterm: 10.8, grade: 'D', infant: 6.8, prenatal: 17.2, policies: 3 },
-      'Iowa': { mm: 16.8, preterm: 10.1, grade: 'C', infant: 4.9, prenatal: 13.5, policies: 3 },
-      'Kansas': { mm: 18.2, preterm: 10.5, grade: 'C', infant: 5.6, prenatal: 14.8, policies: 3 },
-      'Kentucky': { mm: 26.3, preterm: 11.2, grade: 'D', infant: 6.5, prenatal: 18.1, policies: 3 },
-      'Louisiana': { mm: 40.7, preterm: 12.8, grade: 'F', infant: 8.1, prenatal: 22.5, policies: 2 },
-      'Maine': { mm: 14.2, preterm: 9.1, grade: 'A', infant: 4.5, prenatal: 12.8, policies: 4 },
-      'Maryland': { mm: 16.8, preterm: 10.4, grade: 'C', infant: 5.9, prenatal: 13.2, policies: 5 },
-      'Massachusetts': { mm: 12.8, preterm: 9.0, grade: 'A', infant: 3.8, prenatal: 10.5, policies: 6 },
-      'Michigan': { mm: 19.8, preterm: 10.6, grade: 'C', infant: 6.2, prenatal: 15.1, policies: 4 },
-      'Minnesota': { mm: 14.1, preterm: 9.2, grade: 'A', infant: 4.5, prenatal: 11.2, policies: 5 },
-      'Mississippi': { mm: 39.7, preterm: 13.2, grade: 'F', infant: 8.5, prenatal: 24.1, policies: 2 },
-      'Missouri': { mm: 28.5, preterm: 10.8, grade: 'D', infant: 6.4, prenatal: 16.5, policies: 3 },
-      'Montana': { mm: 16.5, preterm: 9.9, grade: 'B', infant: 5.1, prenatal: 15.8, policies: 3 },
-      'Nebraska': { mm: 15.8, preterm: 10.2, grade: 'C', infant: 5.0, prenatal: 13.8, policies: 3 },
-      'Nevada': { mm: 23.5, preterm: 10.5, grade: 'C', infant: 5.6, prenatal: 17.2, policies: 4 },
-      'New Hampshire': { mm: 13.5, preterm: 8.8, grade: 'A', infant: 4.2, prenatal: 10.8, policies: 4 },
-      'New Jersey': { mm: 18.6, preterm: 9.9, grade: 'B', infant: 4.5, prenatal: 12.5, policies: 6 },
-      'New Mexico': { mm: 20.5, preterm: 10.0, grade: 'C', infant: 5.8, prenatal: 18.5, policies: 4 },
-      'New York': { mm: 20.3, preterm: 9.6, grade: 'B', infant: 4.4, prenatal: 12.8, policies: 6 },
-      'North Carolina': { mm: 21.2, preterm: 10.8, grade: 'D', infant: 6.5, prenatal: 15.8, policies: 4 },
-      'North Dakota': { mm: 15.2, preterm: 9.5, grade: 'B', infant: 5.2, prenatal: 12.5, policies: 2 },
-      'Ohio': { mm: 25.3, preterm: 10.7, grade: 'D', infant: 6.8, prenatal: 16.2, policies: 4 },
-      'Oklahoma': { mm: 24.1, preterm: 11.2, grade: 'D', infant: 7.1, prenatal: 19.5, policies: 2 },
-      'Oregon': { mm: 14.8, preterm: 8.9, grade: 'A', infant: 4.5, prenatal: 13.2, policies: 5 },
-      'Pennsylvania': { mm: 18.9, preterm: 10.2, grade: 'C', infant: 5.8, prenatal: 14.5, policies: 4 },
-      'Rhode Island': { mm: 13.8, preterm: 9.1, grade: 'A', infant: 4.8, prenatal: 11.5, policies: 5 },
-      'South Carolina': { mm: 27.8, preterm: 11.5, grade: 'F', infant: 6.8, prenatal: 17.8, policies: 3 },
-      'South Dakota': { mm: 16.8, preterm: 9.8, grade: 'B', infant: 5.5, prenatal: 14.2, policies: 2 },
-      'Tennessee': { mm: 42.1, preterm: 11.8, grade: 'F', infant: 7.2, prenatal: 18.5, policies: 3 },
-      'Texas': { mm: 24.8, preterm: 11.2, grade: 'D', infant: 5.8, prenatal: 17.8, policies: 2 },
-      'Utah': { mm: 12.5, preterm: 9.5, grade: 'B', infant: 4.8, prenatal: 12.8, policies: 3 },
-      'Vermont': { mm: 11.8, preterm: 8.5, grade: 'A', infant: 4.2, prenatal: 10.2, policies: 5 },
-      'Virginia': { mm: 17.3, preterm: 10.1, grade: 'C', infant: 5.5, prenatal: 13.8, policies: 5 },
-      'Washington': { mm: 15.2, preterm: 9.0, grade: 'A', infant: 4.4, prenatal: 12.5, policies: 6 },
-      'West Virginia': { mm: 24.5, preterm: 11.5, grade: 'D', infant: 6.8, prenatal: 19.2, policies: 3 },
-      'Wisconsin': { mm: 15.5, preterm: 10.0, grade: 'C', infant: 5.5, prenatal: 13.5, policies: 4 },
-      'Wyoming': { mm: 17.8, preterm: 10.2, grade: 'C', infant: 5.8, prenatal: 15.5, policies: 2 }
+      'Alabama': { mm: 36.5, preterm: 12.1, grade: 'F', infant: 7.6, prenatal: 19.2, policies: 3, poverty: 15.6, medicaid: false, uninsured: 10.5 },
+      'Alaska': { mm: 19.2, preterm: 9.8, grade: 'B', infant: 5.8, prenatal: 18.5, policies: 3, poverty: 10.4, medicaid: true, uninsured: 11.2 },
+      'Arizona': { mm: 21.8, preterm: 10.1, grade: 'C', infant: 5.4, prenatal: 15.8, policies: 4, poverty: 12.4, medicaid: true, uninsured: 9.8 },
+      'Arkansas': { mm: 37.2, preterm: 11.8, grade: 'F', infant: 7.8, prenatal: 21.3, policies: 2, poverty: 15.7, medicaid: true, uninsured: 8.1 },
+      'California': { mm: 10.1, preterm: 9.2, grade: 'A', infant: 4.2, prenatal: 12.1, policies: 6, poverty: 12.0, medicaid: true, uninsured: 6.8 },
+      'Colorado': { mm: 16.2, preterm: 9.4, grade: 'B', infant: 4.8, prenatal: 14.2, policies: 5, poverty: 9.3, medicaid: true, uninsured: 7.2 },
+      'Connecticut': { mm: 12.1, preterm: 9.6, grade: 'B', infant: 4.6, prenatal: 11.8, policies: 5, poverty: 10.3, medicaid: true, uninsured: 5.2 },
+      'Delaware': { mm: 18.5, preterm: 10.8, grade: 'C', infant: 6.2, prenatal: 14.5, policies: 4, poverty: 10.5, medicaid: true, uninsured: 5.8 },
+      'Florida': { mm: 22.1, preterm: 10.9, grade: 'D', infant: 6.1, prenatal: 16.8, policies: 3, poverty: 12.3, medicaid: false, uninsured: 13.2 },
+      'Georgia': { mm: 33.9, preterm: 11.5, grade: 'F', infant: 7.2, prenatal: 18.9, policies: 3, poverty: 13.6, medicaid: false, uninsured: 13.7 },
+      'Hawaii': { mm: 15.8, preterm: 10.2, grade: 'C', infant: 5.1, prenatal: 12.4, policies: 4, poverty: 10.1, medicaid: true, uninsured: 4.2 },
+      'Idaho': { mm: 17.5, preterm: 9.8, grade: 'B', infant: 5.2, prenatal: 15.1, policies: 2, poverty: 10.1, medicaid: true, uninsured: 9.5 },
+      'Illinois': { mm: 19.2, preterm: 10.5, grade: 'C', infant: 5.8, prenatal: 14.8, policies: 5, poverty: 11.6, medicaid: true, uninsured: 6.8 },
+      'Indiana': { mm: 32.1, preterm: 10.8, grade: 'D', infant: 6.8, prenatal: 17.2, policies: 3, poverty: 12.3, medicaid: true, uninsured: 8.4 },
+      'Iowa': { mm: 16.8, preterm: 10.1, grade: 'C', infant: 4.9, prenatal: 13.5, policies: 3, poverty: 11.3, medicaid: true, uninsured: 5.1 },
+      'Kansas': { mm: 18.2, preterm: 10.5, grade: 'C', infant: 5.6, prenatal: 14.8, policies: 3, poverty: 11.2, medicaid: false, uninsured: 10.8 },
+      'Kentucky': { mm: 26.3, preterm: 11.2, grade: 'D', infant: 6.5, prenatal: 18.1, policies: 3, poverty: 16.4, medicaid: true, uninsured: 5.8 },
+      'Louisiana': { mm: 40.7, preterm: 12.8, grade: 'F', infant: 8.1, prenatal: 22.5, policies: 2, poverty: 18.9, medicaid: true, uninsured: 8.2 },
+      'Maine': { mm: 14.2, preterm: 9.1, grade: 'A', infant: 4.5, prenatal: 12.8, policies: 4, poverty: 10.4, medicaid: true, uninsured: 6.2 },
+      'Maryland': { mm: 16.8, preterm: 10.4, grade: 'C', infant: 5.9, prenatal: 13.2, policies: 5, poverty: 9.5, medicaid: true, uninsured: 6.0 },
+      'Massachusetts': { mm: 12.8, preterm: 9.0, grade: 'A', infant: 3.8, prenatal: 10.5, policies: 6, poverty: 10.4, medicaid: true, uninsured: 2.9 },
+      'Michigan': { mm: 19.8, preterm: 10.6, grade: 'C', infant: 6.2, prenatal: 15.1, policies: 4, poverty: 13.5, medicaid: true, uninsured: 5.9 },
+      'Minnesota': { mm: 14.1, preterm: 9.2, grade: 'A', infant: 4.5, prenatal: 11.2, policies: 5, poverty: 9.3, medicaid: true, uninsured: 4.5 },
+      'Mississippi': { mm: 39.7, preterm: 13.2, grade: 'F', infant: 8.5, prenatal: 24.1, policies: 2, poverty: 18.0, medicaid: false, uninsured: 13.8 },
+      'Missouri': { mm: 28.5, preterm: 10.8, grade: 'D', infant: 6.4, prenatal: 16.5, policies: 3, poverty: 12.0, medicaid: true, uninsured: 9.2 },
+      'Montana': { mm: 16.5, preterm: 9.9, grade: 'B', infant: 5.1, prenatal: 15.8, policies: 3, poverty: 11.7, medicaid: true, uninsured: 8.5 },
+      'Nebraska': { mm: 15.8, preterm: 10.2, grade: 'C', infant: 5.0, prenatal: 13.8, policies: 3, poverty: 10.5, medicaid: true, uninsured: 7.8 },
+      'Nevada': { mm: 23.5, preterm: 10.5, grade: 'C', infant: 5.6, prenatal: 17.2, policies: 4, poverty: 12.0, medicaid: true, uninsured: 10.2 },
+      'New Hampshire': { mm: 13.5, preterm: 8.8, grade: 'A', infant: 4.2, prenatal: 10.8, policies: 4, poverty: 7.2, medicaid: true, uninsured: 5.8 },
+      'New Jersey': { mm: 18.6, preterm: 9.9, grade: 'B', infant: 4.5, prenatal: 12.5, policies: 6, poverty: 9.7, medicaid: true, uninsured: 7.2 },
+      'New Mexico': { mm: 20.5, preterm: 10.0, grade: 'C', infant: 5.8, prenatal: 18.5, policies: 4, poverty: 17.8, medicaid: true, uninsured: 8.5 },
+      'New York': { mm: 20.3, preterm: 9.6, grade: 'B', infant: 4.4, prenatal: 12.8, policies: 6, poverty: 14.2, medicaid: true, uninsured: 5.5 },
+      'North Carolina': { mm: 21.2, preterm: 10.8, grade: 'D', infant: 6.5, prenatal: 15.8, policies: 4, poverty: 12.8, medicaid: true, uninsured: 10.1 },
+      'North Dakota': { mm: 15.2, preterm: 9.5, grade: 'B', infant: 5.2, prenatal: 12.5, policies: 2, poverty: 9.8, medicaid: true, uninsured: 7.2 },
+      'Ohio': { mm: 25.3, preterm: 10.7, grade: 'D', infant: 6.8, prenatal: 16.2, policies: 4, poverty: 13.3, medicaid: true, uninsured: 6.2 },
+      'Oklahoma': { mm: 24.1, preterm: 11.2, grade: 'D', infant: 7.1, prenatal: 19.5, policies: 2, poverty: 15.9, medicaid: true, uninsured: 12.5 },
+      'Oregon': { mm: 14.8, preterm: 8.9, grade: 'A', infant: 4.5, prenatal: 13.2, policies: 5, poverty: 12.2, medicaid: true, uninsured: 5.8 },
+      'Pennsylvania': { mm: 18.9, preterm: 10.2, grade: 'C', infant: 5.8, prenatal: 14.5, policies: 4, poverty: 12.0, medicaid: true, uninsured: 5.6 },
+      'Rhode Island': { mm: 13.8, preterm: 9.1, grade: 'A', infant: 4.8, prenatal: 11.5, policies: 5, poverty: 10.8, medicaid: true, uninsured: 4.2 },
+      'South Carolina': { mm: 27.8, preterm: 11.5, grade: 'F', infant: 6.8, prenatal: 17.8, policies: 3, poverty: 13.9, medicaid: false, uninsured: 11.8 },
+      'South Dakota': { mm: 16.8, preterm: 9.8, grade: 'B', infant: 5.5, prenatal: 14.2, policies: 2, poverty: 11.8, medicaid: true, uninsured: 9.2 },
+      'Tennessee': { mm: 42.1, preterm: 11.8, grade: 'F', infant: 7.2, prenatal: 18.5, policies: 3, poverty: 14.0, medicaid: false, uninsured: 11.5 },
+      'Texas': { mm: 24.8, preterm: 11.2, grade: 'D', infant: 5.8, prenatal: 17.8, policies: 2, poverty: 13.7, medicaid: false, uninsured: 17.3 },
+      'Utah': { mm: 12.5, preterm: 9.5, grade: 'B', infant: 4.8, prenatal: 12.8, policies: 3, poverty: 9.0, medicaid: true, uninsured: 9.5 },
+      'Vermont': { mm: 11.8, preterm: 8.5, grade: 'A', infant: 4.2, prenatal: 10.2, policies: 5, poverty: 9.7, medicaid: true, uninsured: 4.0 },
+      'Virginia': { mm: 17.3, preterm: 10.1, grade: 'C', infant: 5.5, prenatal: 13.8, policies: 5, poverty: 10.2, medicaid: true, uninsured: 7.5 },
+      'Washington': { mm: 15.2, preterm: 9.0, grade: 'A', infant: 4.4, prenatal: 12.5, policies: 6, poverty: 10.3, medicaid: true, uninsured: 6.1 },
+      'West Virginia': { mm: 24.5, preterm: 11.5, grade: 'D', infant: 6.8, prenatal: 19.2, policies: 3, poverty: 16.7, medicaid: true, uninsured: 6.5 },
+      'Wisconsin': { mm: 15.5, preterm: 10.0, grade: 'C', infant: 5.5, prenatal: 13.5, policies: 4, poverty: 10.7, medicaid: false, uninsured: 5.2 },
+      'Wyoming': { mm: 17.8, preterm: 10.2, grade: 'C', infant: 5.8, prenatal: 15.5, policies: 2, poverty: 11.3, medicaid: false, uninsured: 12.8 }
     };
 
     // Color scales for different metrics
@@ -505,9 +509,20 @@
                 <span class="tooltip-label">Infant Mortality</span>
                 <span class="tooltip-value ${data.infant > 6 ? 'bad' : ''}">${data.infant}/1K</span>
               </div>
+              <div style="border-top: 1px solid #444; margin: 8px 0; padding-top: 8px;">
+                <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Socioeconomic Factors</div>
+              </div>
               <div class="tooltip-row">
-                <span class="tooltip-label">Inadequate Prenatal</span>
-                <span class="tooltip-value ${data.prenatal > 17 ? 'bad' : ''}">${data.prenatal}%</span>
+                <span class="tooltip-label">Poverty Rate</span>
+                <span class="tooltip-value ${data.poverty > 14 ? 'bad' : data.poverty < 10 ? 'good' : ''}">${data.poverty}%</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Medicaid Expanded</span>
+                <span class="tooltip-value ${data.medicaid ? 'good' : 'bad'}">${data.medicaid ? 'Yes' : 'No'}</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Uninsured Rate</span>
+                <span class="tooltip-value ${data.uninsured > 10 ? 'bad' : data.uninsured < 6 ? 'good' : ''}">${data.uninsured}%</span>
               </div>
               <div class="tooltip-row">
                 <span class="tooltip-label">Policies Adopted</span>
