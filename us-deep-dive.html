@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>US Maternal Mortality Deep Dive | 2023-2024</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,15 +24,17 @@
     .header {
       background: #222;
       color: white;
-      padding: 48px 48px 40px;
+      padding: 40px 48px 36px;
     }
     .back-link {
       display: inline-block;
       color: rgba(255,255,255,0.6);
       text-decoration: none;
-      font-size: 13px;
+      font-size: 12px;
       font-family: 'Roboto Mono', monospace;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     .back-link:hover { color: white; }
     .kicker {
@@ -40,85 +43,184 @@
       text-transform: uppercase;
       letter-spacing: 2px;
       color: #ff6b6b;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-family: 'Roboto Mono', monospace;
     }
     h1 {
-      font-size: 42px;
+      font-size: 38px;
       font-weight: 900;
       line-height: 1.05;
-      margin-bottom: 14px;
-      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
     }
     .subtitle {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 400;
       opacity: 0.85;
-      max-width: 620px;
+      max-width: 600px;
       line-height: 1.5;
     }
-    .byline {
-      margin-top: 24px;
-      font-size: 12px;
-      font-family: 'Roboto Mono', monospace;
-      opacity: 0.5;
-    }
     .section {
-      padding: 48px;
+      padding: 40px 48px;
       border-bottom: 1px solid #e0e0e0;
     }
     .section-title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
       margin-bottom: 6px;
       color: #222;
     }
     .section-desc {
-      font-size: 15px;
+      font-size: 14px;
       color: #666;
-      margin-bottom: 28px;
-      max-width: 680px;
-    }
-    .chart-container {
-      position: relative;
-      margin: 24px 0;
-    }
-    .chart-title {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 13px;
-      font-weight: 600;
-      color: #222;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .chart-subtitle {
-      font-size: 13px;
-      color: #888;
-      margin-bottom: 16px;
-    }
-    .chart-note {
-      font-size: 11px;
-      color: #999;
-      margin-top: 12px;
-      font-family: 'Roboto Mono', monospace;
+      margin-bottom: 20px;
+      max-width: 650px;
     }
     
-    /* 538-style Big Number */
+    /* Map Styles */
+    .map-container {
+      position: relative;
+      background: #fafafa;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    #map {
+      width: 100%;
+      height: 500px;
+    }
+    .state {
+      stroke: #fff;
+      stroke-width: 1px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .state:hover {
+      opacity: 0.8;
+      stroke: #222;
+      stroke-width: 2px;
+    }
+    .county {
+      stroke: rgba(255,255,255,0.3);
+      stroke-width: 0.25px;
+      cursor: pointer;
+    }
+    .county:hover {
+      stroke: #222;
+      stroke-width: 1px;
+    }
+    .tooltip {
+      position: absolute;
+      background: #222;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 100;
+      max-width: 250px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .tooltip.visible { opacity: 1; }
+    .tooltip-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .tooltip-value {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: #ff6b6b;
+    }
+    .tooltip-label {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+    
+    /* Legend */
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .legend-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #666;
+      margin-right: 8px;
+    }
+    .legend-scale {
+      display: flex;
+      height: 12px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .legend-scale div {
+      width: 40px;
+      height: 100%;
+    }
+    .legend-labels {
+      display: flex;
+      font-size: 10px;
+      font-family: 'Roboto Mono', monospace;
+      color: #888;
+      margin-top: 4px;
+    }
+    .legend-labels span {
+      width: 40px;
+      text-align: center;
+    }
+    
+    /* Map Toggle */
+    .map-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .map-toggle button {
+      padding: 8px 16px;
+      border: 2px solid #ddd;
+      background: white;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    .map-toggle button:hover {
+      border-color: #aaa;
+    }
+    .map-toggle button.active {
+      background: #222;
+      color: white;
+      border-color: #222;
+    }
+    
+    /* Big Numbers */
     .big-number-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 1px;
       background: #e0e0e0;
-      margin: 32px 0;
+      margin: 24px 0;
     }
     .big-number {
       background: #fafafa;
-      padding: 28px 20px;
+      padding: 24px 16px;
       text-align: center;
     }
     .big-number-value {
-      font-size: 42px;
+      font-size: 36px;
       font-weight: 900;
       font-family: 'Roboto Mono', monospace;
       line-height: 1;
@@ -127,269 +229,153 @@
     .big-number-value.green { color: #2a9d8f; }
     .big-number-value.blue { color: #457b9d; }
     .big-number-label {
-      font-size: 11px;
+      font-size: 10px;
       color: #666;
-      margin-top: 8px;
+      margin-top: 6px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     
-    /* Dumbbell Chart Styles */
-    .dumbbell-chart {
-      margin: 24px 0;
-    }
-    .dumbbell-row {
-      display: flex;
-      align-items: center;
-      margin: 16px 0;
-      position: relative;
-    }
-    .dumbbell-label {
-      width: 100px;
-      font-size: 14px;
-      font-weight: 600;
-      text-align: right;
-      padding-right: 16px;
-    }
-    .dumbbell-track {
-      flex: 1;
-      height: 3px;
-      background: #e0e0e0;
-      position: relative;
-      margin: 0 8px;
-    }
-    .dumbbell-line {
-      position: absolute;
-      height: 3px;
-      top: 0;
-    }
-    .dumbbell-dot {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      border: 3px solid white;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-    .dumbbell-value {
-      position: absolute;
-      font-size: 11px;
-      font-weight: 600;
-      font-family: 'Roboto Mono', monospace;
-      top: -20px;
-      transform: translateX(-50%);
-    }
-    .dumbbell-legend {
-      display: flex;
-      gap: 24px;
-      margin-bottom: 16px;
-      font-size: 12px;
-    }
-    .dumbbell-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .dumbbell-legend-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
-    
-    /* Dot Plot */
-    .dot-plot {
-      margin: 24px 0;
-    }
-    .dot-row {
-      display: flex;
-      align-items: center;
-      margin: 6px 0;
-      height: 28px;
-    }
-    .dot-label {
-      width: 110px;
-      font-size: 12px;
-      font-weight: 500;
-      text-align: right;
-      padding-right: 12px;
-    }
-    .dot-track {
-      flex: 1;
-      position: relative;
-      height: 100%;
-    }
-    .dot-axis {
-      position: absolute;
-      height: 1px;
-      background: #e8e8e8;
-      width: 100%;
-      top: 50%;
-    }
-    .dot-point {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-    }
-    .dot-point.highlight {
-      width: 18px;
-      height: 18px;
-      border: 3px solid white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-    
-    /* Slope Chart */
-    .slope-chart {
-      display: flex;
-      margin: 32px 0;
-      padding: 24px;
-      background: #fafafa;
-      border-radius: 8px;
-    }
-    .slope-column {
-      flex: 1;
-      position: relative;
-    }
-    .slope-column-title {
-      font-family: 'Roboto Mono', monospace;
-      font-size: 12px;
-      font-weight: 600;
-      text-align: center;
-      margin-bottom: 16px;
-      color: #666;
-    }
-    .slope-svg {
-      width: 100%;
-      height: 300px;
-    }
-    
-    /* Annotation Callout */
+    /* Annotation */
     .annotation {
-      background: #fff3cd;
-      border-left: 4px solid #ffc107;
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
       padding: 16px 20px;
-      margin: 24px 0;
+      margin: 20px 0;
       font-size: 14px;
     }
-    .annotation strong {
-      color: #856404;
-    }
-    
+    .annotation strong { color: #b45309; }
     .annotation-red {
-      background: #ffebee;
+      background: #fef2f2;
       border-left-color: #e63946;
     }
     .annotation-red strong { color: #c62828; }
     
-    /* State Comparison Grid */
-    .state-compare {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin: 24px 0;
-    }
-    .state-box {
-      background: #fafafa;
-      padding: 24px;
-      border-radius: 8px;
+    /* Chart container */
+    .chart-container {
       position: relative;
-      overflow: hidden;
+      margin: 20px 0;
     }
-    .state-box::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-    }
-    .state-box.worst::before { background: #e63946; }
-    .state-box.best::before { background: #2a9d8f; }
-    .state-box-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #888;
-      margin-bottom: 4px;
-    }
-    .state-box-name {
-      font-size: 20px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    .state-box-value {
-      font-size: 48px;
-      font-weight: 900;
+    .chart-title {
       font-family: 'Roboto Mono', monospace;
-      line-height: 1;
+      font-size: 12px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .state-box.worst .state-box-value { color: #e63946; }
-    .state-box.best .state-box-value { color: #2a9d8f; }
-    .state-box-detail {
+    .chart-subtitle {
       font-size: 12px;
       color: #888;
-      margin-top: 8px;
+      margin-bottom: 12px;
     }
     
-    /* Why Section Cards */
-    .why-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin: 24px 0;
+    /* Race bars */
+    .race-bar-chart {
+      margin: 20px 0;
     }
-    .why-card {
-      background: #fafafa;
-      padding: 20px;
-      border-radius: 8px;
-      border-top: 3px solid #e63946;
+    .race-row {
+      display: flex;
+      align-items: center;
+      margin: 12px 0;
     }
-    .why-card-title {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 8px;
+    .race-label {
+      width: 80px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .race-bar-container {
+      flex: 1;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .why-card-title::before {
-      content: '✕';
-      color: #e63946;
-      font-weight: 900;
+    .race-bar {
+      height: 28px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+      min-width: 40px;
     }
-    .why-card p {
+    .race-bar-value {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+    .race-change {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .race-change.up { background: #fef2f2; color: #e63946; }
+    .race-change.down { background: #f0fdf4; color: #2a9d8f; }
+    
+    /* State ranking */
+    .state-ranking {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .state-rank-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: #fafafa;
+      border-radius: 6px;
+      gap: 12px;
+    }
+    .state-rank-num {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      width: 24px;
+    }
+    .state-rank-bar {
+      flex: 1;
+      height: 8px;
+      background: #e8e8e8;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .state-rank-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+    .state-rank-name {
+      font-size: 12px;
+      font-weight: 600;
+      width: 90px;
+    }
+    .state-rank-value {
+      font-family: 'Roboto Mono', monospace;
       font-size: 13px;
-      color: #666;
-      line-height: 1.5;
+      font-weight: 700;
+      width: 40px;
+      text-align: right;
     }
     
     .sources {
       background: #fafafa;
-      padding: 32px 48px;
-      font-size: 12px;
+      padding: 28px 48px;
+      font-size: 11px;
       color: #888;
     }
     .sources h3 {
       font-family: 'Roboto Mono', monospace;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       color: #666;
-    }
-    .sources ul {
-      list-style: none;
-      columns: 2;
-      column-gap: 40px;
-    }
-    .sources li {
-      margin-bottom: 6px;
-      break-inside: avoid;
     }
     .sources a {
       color: #457b9d;
@@ -397,8 +383,8 @@
     }
     .sources a:hover { text-decoration: underline; }
     .footer {
-      padding: 24px 48px;
-      font-size: 11px;
+      padding: 20px 48px;
+      font-size: 10px;
       color: #aaa;
       text-align: center;
       font-family: 'Roboto Mono', monospace;
@@ -407,114 +393,116 @@
       .header, .section, .sources { padding-left: 24px; padding-right: 24px; }
       h1 { font-size: 28px; }
       .big-number-grid { grid-template-columns: repeat(2, 1fr); }
-      .state-compare, .why-grid { grid-template-columns: 1fr; }
-      .sources ul { columns: 1; }
+      .state-ranking { grid-template-columns: 1fr; }
+      #map { height: 350px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <a href="index.html" class="back-link">← BACK TO GLOBAL</a>
-      <div class="kicker">United States Analysis</div>
-      <h1>America's Maternal Health Crisis</h1>
-      <div class="subtitle">The U.S. has the highest maternal mortality rate of any wealthy nation. Here's what the data shows — and why it matters.</div>
-      <div class="byline">DATA: CDC, MARCH OF DIMES, USAFACTS | 2023</div>
+      <a href="index.html" class="back-link">← Back to Global</a>
+      <div class="kicker">United States</div>
+      <h1>Maternal Mortality in America</h1>
+      <div class="subtitle">An interactive look at where mothers are dying — and why the U.S. is an outlier among wealthy nations.</div>
     </div>
 
     <div class="section">
       <div class="big-number-grid">
         <div class="big-number">
           <div class="big-number-value red">669</div>
-          <div class="big-number-label">Maternal deaths in 2023</div>
+          <div class="big-number-label">Deaths in 2023</div>
         </div>
         <div class="big-number">
           <div class="big-number-value blue">18.6</div>
-          <div class="big-number-label">Deaths per 100K births</div>
+          <div class="big-number-label">Per 100K births</div>
         </div>
         <div class="big-number">
           <div class="big-number-value red">80%</div>
-          <div class="big-number-label">Of deaths preventable</div>
+          <div class="big-number-label">Preventable</div>
         </div>
         <div class="big-number">
           <div class="big-number-value green">−44%</div>
-          <div class="big-number-label">Change since 2021</div>
+          <div class="big-number-label">Since 2021</div>
         </div>
       </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Maternal Mortality by State</div>
+      <div class="section-desc">Hover over any state to see its maternal mortality rate. The gap between best and worst states is more than 4×.</div>
+      
+      <div class="map-container">
+        <div id="map"></div>
+        <div class="tooltip" id="tooltip"></div>
+        <div class="legend">
+          <span class="legend-title">Deaths per 100K births:</span>
+          <div>
+            <div class="legend-scale">
+              <div style="background:#fee5d9"></div>
+              <div style="background:#fcae91"></div>
+              <div style="background:#fb6a4a"></div>
+              <div style="background:#de2d26"></div>
+              <div style="background:#a50f15"></div>
+            </div>
+            <div class="legend-labels">
+              <span>10</span>
+              <span>20</span>
+              <span>30</span>
+              <span>40</span>
+              <span>50+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="annotation">
+        <strong>California has invested heavily in maternal health</strong> — establishing review committees, quality improvement programs, and expanded Medicaid coverage. The result: a rate (10.1) that's 4× lower than Tennessee (42.1).
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">State Rankings</div>
+      <div class="section-desc">Maternal mortality rate, 2019–2023 average. States with small numbers suppressed.</div>
+      
+      <div class="state-ranking" id="stateRanking"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">The Racial Divide</div>
+      <div class="section-desc">Black women face 3.5× the risk of white women — a gap that persists across income and education levels.</div>
+      
+      <div class="chart-title">Maternal mortality by race, 2023</div>
+      <div class="chart-subtitle">Deaths per 100,000 live births, with year-over-year change</div>
+      
+      <div class="race-bar-chart" id="raceChart"></div>
       
       <div class="annotation-red annotation">
-        <strong>The U.S. is an extreme outlier.</strong> Among 14 high-income countries analyzed, America's maternal mortality rate is more than double most peers — and 22× higher than Norway, which recorded zero maternal deaths.
+        <strong>Black maternal mortality actually increased in 2023</strong> (+1.6%) while all other groups saw declines. Hispanic women saw the largest drop (−26.6%).
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">The Racial Gap Is Staggering</div>
-      <div class="section-desc">Black women face 3.5× the maternal mortality risk of white women — a disparity that persisted even as overall rates fell in 2023.</div>
-      
-      <div class="chart-title">Change in Maternal Mortality by Race, 2022 → 2023</div>
-      <div class="chart-subtitle">Deaths per 100,000 live births</div>
-      
-      <div class="dumbbell-legend">
-        <div class="dumbbell-legend-item"><div class="dumbbell-legend-dot" style="background:#aaa"></div> 2022</div>
-        <div class="dumbbell-legend-item"><div class="dumbbell-legend-dot" style="background:#e63946"></div> 2023</div>
-      </div>
-      
-      <div class="dumbbell-chart" id="raceChart">
-        <!-- Will be populated by JS -->
-      </div>
-      
-      <div class="chart-note">Source: CDC National Center for Health Statistics, 2023</div>
-      
-      <div class="annotation">
-        <strong>Black women saw a 1.6% increase</strong> in maternal mortality from 2022 to 2023, while all other groups saw declines. Hispanic women saw the largest improvement, down 26.6%.
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Age Is a Major Risk Factor</div>
-      <div class="section-desc">Women over 40 face nearly 5× the mortality risk of women under 25.</div>
+      <div class="section-title">What's Killing Mothers?</div>
+      <div class="section-desc">Leading causes of maternal death, 2020–2023.</div>
       
       <div class="chart-container" style="height: 280px;">
-        <canvas id="ageChart"></canvas>
-      </div>
-      
-      <div class="annotation">
-        <strong>At 59.8 deaths per 100K,</strong> women 40 and older face nearly 5× the risk of those under 25 (12.5). Rising maternal age in the U.S. contributes to overall mortality trends.
+        <canvas id="causesChart"></canvas>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">State-by-State: A 4× Gap</div>
-      <div class="section-desc">Maternal mortality varies dramatically depending on where you live.</div>
+      <div class="section-title">The COVID Spike</div>
+      <div class="section-desc">Maternal mortality spiked dramatically in 2021 when COVID-19 became the leading cause of maternal death.</div>
       
-      <div class="chart-title">Maternal Mortality Rate by State, 2019–2023 Average</div>
-      <div class="chart-subtitle">Deaths per 100,000 live births. States with fewer than 20 deaths suppressed.</div>
-      
-      <div class="dot-plot" id="statePlot">
-        <!-- Will be populated by JS -->
-      </div>
-      
-      <div class="chart-note">Dashed line = national average (18.6). Source: CDC, USAFacts</div>
-      
-      <div class="state-compare">
-        <div class="state-box worst">
-          <div class="state-box-label">Highest Rate</div>
-          <div class="state-box-name">Tennessee</div>
-          <div class="state-box-value">42.1</div>
-          <div class="state-box-detail">per 100,000 live births</div>
-        </div>
-        <div class="state-box best">
-          <div class="state-box-label">Lowest Rate</div>
-          <div class="state-box-name">California</div>
-          <div class="state-box-value">10.1</div>
-          <div class="state-box-detail">per 100,000 live births</div>
-        </div>
+      <div class="chart-container" style="height: 280px;">
+        <canvas id="trendChart"></canvas>
       </div>
     </div>
 
     <div class="section">
       <div class="section-title">Maternity Care Deserts</div>
-      <div class="section-desc">More than a third of U.S. counties lack any obstetric care whatsoever.</div>
+      <div class="section-desc">35% of U.S. counties have no obstetric care — no hospitals, no birth centers, no OB-GYNs.</div>
       
       <div class="big-number-grid">
         <div class="big-number">
@@ -522,226 +510,178 @@
           <div class="big-number-label">Counties are deserts</div>
         </div>
         <div class="big-number">
+          <div class="big-number-value red">2.2M</div>
+          <div class="big-number-label">Women affected</div>
+        </div>
+        <div class="big-number">
+          <div class="big-number-value blue">8K</div>
+          <div class="big-number-label">More OB-GYNs needed</div>
+        </div>
+        <div class="big-number">
           <div class="big-number-value red">52%</div>
-          <div class="big-number-label">Lack OB hospitals</div>
-        </div>
-        <div class="big-number">
-          <div class="big-number-value blue">2.2M</div>
-          <div class="big-number-label">Women in deserts</div>
-        </div>
-        <div class="big-number">
-          <div class="big-number-value red">8K</div>
-          <div class="big-number-label">OB-GYNs needed</div>
-        </div>
-      </div>
-      
-      <div class="annotation">
-        <strong>A "maternity care desert"</strong> is a county with no hospital offering obstetric care, no birth center, and no obstetric providers. Women in these areas must travel long distances for prenatal care and delivery.
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">How We Got Here: 2018–2023</div>
-      <div class="section-desc">COVID-19 caused a dramatic spike in 2021, but rates have since fallen back toward pre-pandemic levels.</div>
-      
-      <div class="chart-container" style="height: 320px;">
-        <canvas id="trendChart"></canvas>
-      </div>
-      
-      <div class="chart-note">COVID-19 was the leading cause of death in 2020 (14.7%) and 2021 (40.5%). Source: CDC</div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">What Kills Mothers</div>
-      <div class="section-desc">The leading causes are largely preventable with proper medical care.</div>
-      
-      <div class="chart-container" style="height: 300px;">
-        <canvas id="causesChart"></canvas>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Why Is the U.S. an Outlier?</div>
-      <div class="section-desc">Structural factors that distinguish America from its peers:</div>
-      
-      <div class="why-grid">
-        <div class="why-card">
-          <div class="why-card-title">No Universal Healthcare</div>
-          <p>~8 million women of reproductive age are uninsured. The U.S. is the only high-income country without universal coverage.</p>
-        </div>
-        <div class="why-card">
-          <div class="why-card-title">Severe Midwife Shortage</div>
-          <p>Only 4 midwives per 1,000 births vs. 58 in Norway. Midwifery care is associated with better outcomes but is underutilized.</p>
-        </div>
-        <div class="why-card">
-          <div class="why-card-title">No Paid Parental Leave</div>
-          <p>The only wealthy nation with no federally mandated paid maternity leave. Peer countries guarantee 14+ weeks.</p>
-        </div>
-        <div class="why-card">
-          <div class="why-card-title">Limited Postpartum Care</div>
-          <p>2 in 5 women skip their postpartum checkup. Other countries guarantee home visits within a week of birth.</p>
+          <div class="big-number-label">Counties lack OB hospital</div>
         </div>
       </div>
     </div>
 
     <div class="sources">
-      <h3>Data Sources</h3>
-      <ul>
-        <li><a href="https://www.cdc.gov/nchs/data/hestat/maternal-mortality/2023/maternal-mortality-rates-2023.htm" target="_blank">CDC NCHS: Maternal Mortality Rates 2023</a></li>
-        <li><a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts: State Maternal Mortality Rates</a></li>
-        <li><a href="https://www.marchofdimes.org/maternity-care-deserts-report" target="_blank">March of Dimes: Maternity Care Deserts 2024</a></li>
-        <li><a href="https://www.commonwealthfund.org/publications/issue-briefs/2024/jun/insights-us-maternal-mortality-crisis-international-comparison" target="_blank">Commonwealth Fund: US Maternal Mortality</a></li>
-        <li><a href="https://www.cdc.gov/maternal-mortality/php/pregnancy-mortality-surveillance-data/" target="_blank">CDC: Pregnancy Mortality Surveillance</a></li>
-      </ul>
+      <h3>Sources</h3>
+      <a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC NCHS Maternal Mortality</a> · 
+      <a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts</a> · 
+      <a href="https://www.marchofdimes.org/maternity-care-deserts-report" target="_blank">March of Dimes</a> · 
+      <a href="https://www.commonwealthfund.org/" target="_blank">Commonwealth Fund</a>
     </div>
 
     <div class="footer">
-      MATERNAL MORTALITY = DEATHS PER 100,000 LIVE BIRTHS | STATE DATA: 2019–2023 AGGREGATE | RACE/AGE: 2023
+      MATERNAL MORTALITY RATIO = DEATHS PER 100,000 LIVE BIRTHS
     </div>
   </div>
 
   <script>
-    // 538-style colors
-    const colors = {
-      red: '#e63946',
-      blue: '#457b9d',
-      green: '#2a9d8f',
-      gray: '#aaa',
-      lightGray: '#e8e8e8'
+    // State data
+    const stateData = {
+      'Tennessee': 42.1, 'Louisiana': 40.7, 'Mississippi': 39.7, 'Arkansas': 37.2,
+      'Alabama': 36.5, 'Georgia': 33.9, 'Indiana': 32.1, 'Missouri': 28.5,
+      'South Carolina': 27.8, 'Kentucky': 26.3, 'Ohio': 25.3, 'Texas': 24.8,
+      'Oklahoma': 24.1, 'Nevada': 23.5, 'Florida': 22.1, 'Arizona': 21.8,
+      'North Carolina': 21.2, 'New York': 20.3, 'Michigan': 19.8, 'Illinois': 19.2,
+      'Pennsylvania': 18.9, 'New Jersey': 18.6, 'Virginia': 17.3, 'Maryland': 16.8,
+      'Colorado': 16.2, 'Washington': 15.2, 'Oregon': 14.8, 'Minnesota': 14.1,
+      'Massachusetts': 12.8, 'Connecticut': 12.1, 'California': 10.1
     };
 
-    // Dumbbell Chart - Race
+    // Color scale
+    const colorScale = d3.scaleThreshold()
+      .domain([15, 20, 25, 30, 40])
+      .range(['#fee5d9', '#fcae91', '#fb6a4a', '#de2d26', '#a50f15', '#67000d']);
+
+    // Load and render map
+    const width = 900, height = 500;
+    const svg = d3.select('#map')
+      .append('svg')
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet');
+
+    const tooltip = d3.select('#tooltip');
+
+    d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us => {
+      const projection = d3.geoAlbersUsa().fitSize([width, height], topojson.feature(us, us.objects.states));
+      const path = d3.geoPath().projection(projection);
+
+      svg.selectAll('path')
+        .data(topojson.feature(us, us.objects.states).features)
+        .enter()
+        .append('path')
+        .attr('class', 'state')
+        .attr('d', path)
+        .attr('fill', d => {
+          const name = d.properties.name;
+          const rate = stateData[name];
+          return rate ? colorScale(rate) : '#e8e8e8';
+        })
+        .on('mousemove', function(event, d) {
+          const name = d.properties.name;
+          const rate = stateData[name];
+          
+          tooltip.classed('visible', true)
+            .style('left', (event.offsetX + 15) + 'px')
+            .style('top', (event.offsetY - 10) + 'px')
+            .html(`
+              <div class="tooltip-title">${name}</div>
+              ${rate ? `
+                <div class="tooltip-value">${rate}</div>
+                <div class="tooltip-label">deaths per 100K births</div>
+              ` : '<div class="tooltip-label">Data not available</div>'}
+            `);
+        })
+        .on('mouseout', () => tooltip.classed('visible', false));
+    });
+
+    // State ranking
+    const rankingEl = document.getElementById('stateRanking');
+    const sortedStates = Object.entries(stateData).sort((a, b) => b[1] - a[1]);
+    const maxRate = sortedStates[0][1];
+
+    sortedStates.forEach(([state, rate], i) => {
+      const pct = (rate / maxRate) * 100;
+      const color = colorScale(rate);
+      const item = document.createElement('div');
+      item.className = 'state-rank-item';
+      item.innerHTML = `
+        <span class="state-rank-num">${i + 1}</span>
+        <span class="state-rank-name">${state}</span>
+        <div class="state-rank-bar">
+          <div class="state-rank-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <span class="state-rank-value" style="color:${color}">${rate}</span>
+      `;
+      rankingEl.appendChild(item);
+    });
+
+    // Race chart
     const raceData = [
-      { label: 'Black', v2022: 49.5, v2023: 50.3, change: '+1.6%' },
-      { label: 'White', v2022: 19.0, v2023: 14.5, change: '−23.7%' },
-      { label: 'Hispanic', v2022: 16.9, v2023: 12.4, change: '−26.6%' },
-      { label: 'Asian', v2022: 13.2, v2023: 10.7, change: '−18.9%' }
+      { label: 'Black', value: 50.3, change: '+1.6%', up: true },
+      { label: 'White', value: 14.5, change: '−23.7%', up: false },
+      { label: 'Hispanic', value: 12.4, change: '−26.6%', up: false },
+      { label: 'Asian', value: 10.7, change: '−18.9%', up: false }
     ];
-    
+
     const raceChartEl = document.getElementById('raceChart');
-    const maxRate = 55;
-    
+    const maxRace = 55;
+
     raceData.forEach(d => {
+      const pct = (d.value / maxRace) * 100;
+      const color = d.up ? '#e63946' : '#457b9d';
       const row = document.createElement('div');
-      row.className = 'dumbbell-row';
-      
-      const pos2022 = (d.v2022 / maxRate) * 100;
-      const pos2023 = (d.v2023 / maxRate) * 100;
-      const lineLeft = Math.min(pos2022, pos2023);
-      const lineWidth = Math.abs(pos2023 - pos2022);
-      const isIncrease = d.v2023 > d.v2022;
-      
+      row.className = 'race-row';
       row.innerHTML = `
-        <div class="dumbbell-label">${d.label}</div>
-        <div class="dumbbell-track">
-          <div class="dumbbell-line" style="left:${lineLeft}%; width:${lineWidth}%; background:${isIncrease ? colors.red : colors.green}"></div>
-          <div class="dumbbell-dot" style="left:${pos2022}%; background:${colors.gray}"></div>
-          <div class="dumbbell-dot" style="left:${pos2023}%; background:${isIncrease ? colors.red : colors.green}">
-            <div class="dumbbell-value" style="color:${isIncrease ? colors.red : colors.green}">${d.v2023}</div>
+        <span class="race-label">${d.label}</span>
+        <div class="race-bar-container">
+          <div class="race-bar" style="width:${pct}%;background:${color}">
+            <span class="race-bar-value">${d.value}</span>
           </div>
+          <span class="race-change ${d.up ? 'up' : 'down'}">${d.change}</span>
         </div>
       `;
       raceChartEl.appendChild(row);
     });
 
-    // Dot Plot - States
-    const stateData = [
-      { state: 'Tennessee', rate: 42.1 },
-      { state: 'Louisiana', rate: 40.7 },
-      { state: 'Mississippi', rate: 39.7 },
-      { state: 'Arkansas', rate: 37.2 },
-      { state: 'Alabama', rate: 36.5 },
-      { state: 'Georgia', rate: 33.9 },
-      { state: 'Indiana', rate: 32.1 },
-      { state: 'Missouri', rate: 28.5 },
-      { state: 'Ohio', rate: 25.3 },
-      { state: 'Texas', rate: 24.8 },
-      { state: 'Florida', rate: 22.1 },
-      { state: 'New York', rate: 20.3 },
-      { state: 'New Jersey', rate: 18.6 },
-      { state: 'Washington', rate: 15.2 },
-      { state: 'Minnesota', rate: 14.1 },
-      { state: 'California', rate: 10.1 }
-    ];
-    
-    const statePlotEl = document.getElementById('statePlot');
-    const maxStateRate = 50;
-    const avgRate = 18.6;
-    const avgPos = (avgRate / maxStateRate) * 100;
-    
-    stateData.forEach((d, i) => {
-      const row = document.createElement('div');
-      row.className = 'dot-row';
-      
-      const pos = (d.rate / maxStateRate) * 100;
-      const isHighlight = i === 0 || i === stateData.length - 1;
-      const dotColor = d.rate > 30 ? colors.red : d.rate > 18.6 ? '#f4a261' : colors.green;
-      
-      row.innerHTML = `
-        <div class="dot-label">${d.state}</div>
-        <div class="dot-track">
-          <div class="dot-axis"></div>
-          <div style="position:absolute;left:${avgPos}%;top:0;bottom:0;border-left:2px dashed ${colors.gray};"></div>
-          <div class="dot-point ${isHighlight ? 'highlight' : ''}" style="left:${pos}%; background:${dotColor}"></div>
-        </div>
-      `;
-      statePlotEl.appendChild(row);
-    });
-
-    // Age Chart
-    new Chart(document.getElementById('ageChart'), {
+    // Causes chart
+    new Chart(document.getElementById('causesChart'), {
       type: 'bar',
       data: {
-        labels: ['Under 25', '25–39', '40 and older'],
+        labels: ['Hemorrhage', 'Infection', 'Blood Clots', 'Heart Disease', 'Cardiac (other)', 'Other'],
         datasets: [{
-          data: [12.5, 18.1, 59.8],
-          backgroundColor: [colors.green, colors.blue, colors.red],
-          borderRadius: 4,
-          barThickness: 60
+          data: [18.1, 14.0, 11.5, 10.2, 10.4, 35.8],
+          backgroundColor: ['#e63946', '#f4a261', '#457b9d', '#6d6875', '#aaa', '#ddd'],
+          borderRadius: 3
         }]
       },
       options: {
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#222',
-            titleFont: { family: 'Roboto Mono' },
-            bodyFont: { family: 'Roboto Mono' },
-            callbacks: {
-              label: ctx => ctx.raw + ' per 100K'
-            }
-          }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          y: {
-            beginAtZero: true,
-            max: 70,
-            grid: { color: '#e8e8e8' },
-            ticks: { font: { family: 'Roboto Mono', size: 11 } }
-          },
-          x: {
-            grid: { display: false },
-            ticks: { font: { family: 'Inter', size: 13, weight: 600 } }
-          }
+          x: { max: 40, grid: { color: '#e8e8e8' }, ticks: { callback: v => v + '%', font: { family: 'Roboto Mono', size: 10 } } },
+          y: { grid: { display: false }, ticks: { font: { size: 11 } } }
         }
       }
     });
 
-    // Trend Chart
+    // Trend chart
     new Chart(document.getElementById('trendChart'), {
       type: 'line',
       data: {
         labels: ['2018', '2019', '2020', '2021', '2022', '2023'],
         datasets: [{
           data: [17.4, 20.1, 23.8, 32.9, 22.3, 18.6],
-          borderColor: colors.blue,
-          backgroundColor: colors.blue + '15',
+          borderColor: '#457b9d',
+          backgroundColor: 'rgba(69,123,157,0.1)',
           fill: true,
           tension: 0.35,
-          pointRadius: 6,
-          pointBackgroundColor: ctx => ctx.raw > 30 ? colors.red : colors.blue,
+          pointRadius: 5,
+          pointBackgroundColor: ctx => ctx.raw > 30 ? '#e63946' : '#457b9d',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
           borderWidth: 3
@@ -750,81 +690,10 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          annotation: {
-            annotations: {
-              covidPeak: {
-                type: 'label',
-                xValue: '2021',
-                yValue: 36,
-                content: ['COVID-19 peak', '32.9 per 100K'],
-                font: { size: 11, family: 'Roboto Mono' },
-                color: colors.red
-              },
-              covidNote: {
-                type: 'point',
-                xValue: '2021',
-                yValue: 32.9,
-                backgroundColor: 'transparent',
-                borderColor: colors.red,
-                borderWidth: 2,
-                radius: 12
-              }
-            }
-          }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          y: {
-            min: 10,
-            max: 40,
-            grid: { color: '#e8e8e8' },
-            ticks: { font: { family: 'Roboto Mono', size: 11 } }
-          },
-          x: {
-            grid: { display: false },
-            ticks: { font: { family: 'Roboto Mono', size: 12, weight: 600 } }
-          }
-        }
-      }
-    });
-
-    // Causes Chart - Horizontal bars
-    new Chart(document.getElementById('causesChart'), {
-      type: 'bar',
-      data: {
-        labels: ['Hemorrhage', 'Infection / Sepsis', 'Blood Clots', 'Chronic Heart Disease', 'Other Cardiac', 'Other Causes'],
-        datasets: [{
-          data: [18.1, 14.0, 11.5, 10.2, 10.4, 35.8],
-          backgroundColor: [colors.red, '#f4a261', colors.blue, '#6d6875', '#aaa', '#ddd'],
-          borderRadius: 4
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => ctx.raw + '% of deaths'
-            }
-          }
-        },
-        scales: {
-          x: {
-            max: 40,
-            grid: { color: '#e8e8e8' },
-            ticks: {
-              font: { family: 'Roboto Mono', size: 11 },
-              callback: v => v + '%'
-            }
-          },
-          y: {
-            grid: { display: false },
-            ticks: { font: { family: 'Inter', size: 12 } }
-          }
+          y: { min: 10, max: 38, grid: { color: '#e8e8e8' }, ticks: { font: { family: 'Roboto Mono', size: 10 } } },
+          x: { grid: { display: false }, ticks: { font: { family: 'Roboto Mono', size: 11, weight: 600 } } }
         }
       }
     });
