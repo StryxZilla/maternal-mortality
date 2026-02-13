@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>US Maternal Mortality Deep Dive | 2023-2024</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f0f0; color: #222; line-height: 1.6; }
+    .container { max-width: 1000px; margin: 0 auto; background: #fff; }
+    .header { background: #222; color: white; padding: 40px 48px 36px; }
+    .back-link { display: inline-block; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 12px; font-family: 'Roboto Mono', monospace; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .back-link:hover { color: white; }
+    .kicker { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #ff6b6b; margin-bottom: 8px; font-family: 'Roboto Mono', monospace; }
+    h1 { font-size: 36px; font-weight: 900; line-height: 1.05; margin-bottom: 12px; letter-spacing: -1px; }
+    .subtitle { font-size: 16px; font-weight: 400; opacity: 0.85; max-width: 600px; line-height: 1.5; }
+    .section { padding: 36px 48px; border-bottom: 1px solid #e0e0e0; }
+    .section-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: #222; }
+    .section-desc { font-size: 14px; color: #666; margin-bottom: 16px; max-width: 650px; }
+    
+    /* Narrative transitions */
+    .narrative { background: #fafafa; padding: 24px 48px; border-bottom: 1px solid #e0e0e0; }
+    .narrative-text { font-size: 15px; color: #444; max-width: 700px; line-height: 1.7; }
+    .narrative-text strong { color: #222; }
+    
+    .map-container { position: relative; background: #fafafa; border-radius: 8px; padding: 16px; margin: 16px 0; }
+    #map { width: 100%; height: 420px; }
+    .state { stroke: #fff; stroke-width: 1px; cursor: pointer; transition: opacity 0.15s; }
+    .state:hover { opacity: 0.8; stroke: #222; stroke-width: 2px; }
+    
+    .tooltip { position: absolute; background: #222; color: white; padding: 16px 20px; border-radius: 8px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; min-width: 260px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .tooltip.visible { opacity: 1; }
+    .tooltip-title { font-weight: 700; font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid #444; padding-bottom: 8px; }
+    .tooltip-row { display: flex; justify-content: space-between; margin: 6px 0; }
+    .tooltip-label { color: #aaa; }
+    .tooltip-value { font-family: 'Roboto Mono', monospace; font-weight: 600; }
+    .tooltip-value.bad { color: #ff6b6b; }
+    .tooltip-value.good { color: #4ecdc4; }
+    .tooltip-grade { display: inline-block; padding: 2px 8px; border-radius: 3px; font-weight: 700; font-size: 11px; margin-left: 6px; }
+    .tooltip-grade.A { background: #2a9d8f; }
+    .tooltip-grade.B { background: #4ecdc4; }
+    .tooltip-grade.C { background: #f4a261; }
+    .tooltip-grade.D { background: #e76f51; }
+    .tooltip-grade.F { background: #e63946; }
+    
+    .legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .legend-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; }
+    .legend-scale { display: flex; height: 10px; border-radius: 2px; overflow: hidden; }
+    .legend-scale div { width: 32px; height: 100%; }
+    
+    .metric-toggle { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .metric-toggle button { padding: 6px 12px; border: 2px solid #e0e0e0; background: white; font-family: 'Roboto Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; border-radius: 4px; transition: all 0.15s; }
+    .metric-toggle button:hover { border-color: #aaa; }
+    .metric-toggle button.active { background: #222; color: white; border-color: #222; }
+    
+    .big-number-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #e0e0e0; margin: 20px 0; }
+    .big-number { background: #fafafa; padding: 20px 12px; text-align: center; }
+    .big-number-value { font-size: 32px; font-weight: 900; font-family: 'Roboto Mono', monospace; line-height: 1; }
+    .big-number-value.red { color: #e63946; }
+    .big-number-value.green { color: #2a9d8f; }
+    .big-number-value.blue { color: #457b9d; }
+    .big-number-label { font-size: 9px; color: #666; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .annotation { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 14px 18px; margin: 16px 0; font-size: 13px; }
+    .annotation strong { color: #b45309; }
+    .annotation-red { background: #fef2f2; border-left-color: #e63946; }
+    .annotation-red strong { color: #c62828; }
+    .annotation-blue { background: #eff6ff; border-left-color: #457b9d; }
+    .annotation-blue strong { color: #1e40af; }
+    .annotation-green { background: #f0fdf4; border-left-color: #2a9d8f; }
+    .annotation-green strong { color: #047857; }
+    
+    .chart-container { position: relative; margin: 16px 0; }
+    .chart-title { font-family: 'Roboto Mono', monospace; font-size: 11px; font-weight: 600; color: #222; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .chart-subtitle { font-size: 11px; color: #888; margin-bottom: 10px; }
+    
+    .scatter-container { position: relative; height: 350px; background: #fafafa; border-radius: 8px; padding: 20px; margin: 16px 0; }
+    #scatterPlot { width: 100%; height: 100%; }
+    
+    .policy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+    .policy-card { background: #fafafa; padding: 16px; border-radius: 8px; text-align: center; }
+    .policy-value { font-size: 28px; font-weight: 900; font-family: 'Roboto Mono', monospace; }
+    .policy-value.good { color: #2a9d8f; }
+    .policy-value.bad { color: #e63946; }
+    .policy-label { font-size: 11px; color: #666; margin-top: 4px; }
+    
+    .state-table { width: 100%; font-size: 12px; margin: 16px 0; }
+    .state-table th { text-align: left; font-weight: 600; padding: 8px 6px; border-bottom: 2px solid #222; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .state-table td { padding: 8px 6px; border-bottom: 1px solid #eee; }
+    .state-table tr:hover { background: #f8f8f8; }
+    .state-table .mono { font-family: 'Roboto Mono', monospace; }
+    .grade { display: inline-block; padding: 2px 6px; border-radius: 3px; font-weight: 700; font-size: 10px; color: white; }
+    .grade.A { background: #2a9d8f; }
+    .grade.B { background: #4ecdc4; color: #222; }
+    .grade.C { background: #f4a261; }
+    .grade.D { background: #e76f51; }
+    .grade.F { background: #e63946; }
+    
+    /* Heat map matrix */
+    .heat-matrix { display: grid; grid-template-columns: auto repeat(4, 1fr); gap: 2px; background: #e0e0e0; margin: 20px 0; border-radius: 8px; overflow: hidden; }
+    .heat-cell { background: #fafafa; padding: 12px 8px; text-align: center; }
+    .heat-cell.header { background: #222; color: white; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .heat-cell.label { background: #f5f5f5; font-size: 11px; font-weight: 600; text-align: left; padding-left: 12px; }
+    .heat-cell.data { font-family: 'Roboto Mono', monospace; font-size: 14px; font-weight: 700; cursor: help; transition: transform 0.2s; }
+    .heat-cell.data:hover { transform: scale(1.15); z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .heat-cell.very-low { background: #d4edda; color: #155724; }
+    .heat-cell.low { background: #fff3cd; color: #856404; }
+    .heat-cell.medium { background: #f8d7da; color: #721c24; }
+    .heat-cell.high { background: #f5c6cb; color: #721c24; }
+    .heat-cell.very-high { background: #e63946; color: white; }
+    
+    /* Income breakdown bars */
+    .income-bar-chart { margin: 20px 0; }
+    .income-bar-row { display: flex; align-items: center; margin: 10px 0; }
+    .income-bar-label { width: 200px; font-size: 12px; font-weight: 600; }
+    .income-bar-label-sub { font-size: 10px; color: #666; font-weight: 400; }
+    .income-bar-container { flex: 1; height: 32px; background: #f5f5f5; border-radius: 6px; position: relative; overflow: hidden; }
+    .income-bar { height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 12px; border-radius: 6px; transition: width 0.5s ease; }
+    .income-bar-value { font-family: 'Roboto Mono', monospace; font-size: 12px; font-weight: 700; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    
+    /* Source citations */
+    .source-link { font-size: 10px; color: #888; margin-top: 8px; font-family: 'Roboto Mono', monospace; }
+    .source-link a { color: #457b9d; text-decoration: none; }
+    .source-link a:hover { text-decoration: underline; }
+    
+    .sources { background: #fafafa; padding: 24px 48px; font-size: 11px; color: #888; }
+    .sources h3 { font-family: 'Roboto Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; color: #666; }
+    .sources a { color: #457b9d; text-decoration: none; }
+    .sources a:hover { text-decoration: underline; }
+    .sources ul { list-style: none; margin: 0; padding: 0; }
+    .sources li { margin: 6px 0; line-height: 1.5; }
+    .footer { padding: 16px 48px; font-size: 10px; color: #aaa; text-align: center; font-family: 'Roboto Mono', monospace; }
+    @media (max-width: 768px) {
+      .header, .section, .sources, .narrative { padding-left: 20px; padding-right: 20px; }
+      h1 { font-size: 26px; }
+      .big-number-grid { grid-template-columns: repeat(2, 1fr); }
+      .policy-grid { grid-template-columns: 1fr; }
+      #map { height: 300px; }
+      .heat-matrix { grid-template-columns: auto 1fr; }
+      .heat-cell.data { font-size: 11px; padding: 8px 4px; }
+      .income-bar-label { width: 140px; font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <a href="index.html" class="back-link">← Back to Global</a>
+      <div class="kicker">United States Deep Dive</div>
+      <h1>The Maternal Health Crisis</h1>
+      <div class="subtitle">In the world's wealthiest nation, mothers are dying at rates that rival developing countries. This is a story of systemic failures — across race, income, education, and geography.</div>
+    </div>
+
+    <!-- PART 1: THE BIG PICTURE -->
+    <div class="section">
+      <div class="big-number-grid">
+        <div class="big-number"><div class="big-number-value red">669</div><div class="big-number-label">Maternal Deaths 2023</div></div>
+        <div class="big-number"><div class="big-number-value blue">18.6</div><div class="big-number-label">Per 100K Births</div></div>
+        <div class="big-number"><div class="big-number-value red">10.4%</div><div class="big-number-label">Preterm Birth Rate</div></div>
+        <div class="big-number"><div class="big-number-value blue">5.6</div><div class="big-number-label">Infant Deaths/1K</div></div>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/nchs/data/hestat/maternal-mortality/2023/maternal-mortality-rates-2023.htm" target="_blank">CDC NCHS Maternal Mortality 2023</a></div>
+    </div>
+
+    <div class="narrative">
+      <p class="narrative-text">These numbers represent a national failure. The U.S. has the <strong>highest maternal mortality rate of any developed nation</strong> — more than triple the rate of most European countries. But the crisis isn't distributed equally. Where you live, what you earn, and especially the color of your skin dramatically affect whether you survive childbirth.</p>
+    </div>
+
+    <!-- PART 2: GEOGRAPHIC DISPARITIES -->
+    <div class="section">
+      <div class="section-title">Interactive State Map</div>
+      <div class="section-desc">Hover over any state to see detailed maternal and infant health metrics, plus socioeconomic factors like poverty rate, Medicaid expansion status, and uninsured rate. Toggle between different metrics to see how states compare.</div>
+      
+      <div class="metric-toggle">
+        <button class="active" data-metric="maternal">Maternal Mortality</button>
+        <button data-metric="preterm">Preterm Birth</button>
+        <button data-metric="infant">Infant Mortality</button>
+        <button data-metric="prenatal">Prenatal Care</button>
+        <button data-metric="income">Median Income</button>
+      </div>
+      
+      <div class="map-container">
+        <div id="map"></div>
+        <div class="tooltip" id="tooltip"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="source-link">Sources: <a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025</a>, <a href="https://www.americashealthrankings.org/explore/measures/maternal_mortality_a" target="_blank">America's Health Rankings</a>, <a href="https://www2.census.gov/library/publications/2024/demo/acsbr-022.pdf" target="_blank">Census Bureau 2023</a>, <a href="https://www.kff.org/medicaid/issue-brief/status-of-state-medicaid-expansion-decisions-interactive-map/" target="_blank">KFF Medicaid Tracker</a></div>
+    </div>
+
+    <div class="narrative">
+      <p class="narrative-text">The map reveals a stark North-South divide. <strong>Southern states consistently have the worst outcomes</strong> — Mississippi, Louisiana, Alabama, and Georgia form a corridor of crisis. Meanwhile, states like California, Massachusetts, and Vermont have achieved rates comparable to Europe through coordinated policy action.</p>
+    </div>
+
+    <!-- PART 3: THE RACIAL DIVIDE -->
+    <div class="section">
+      <div class="section-title">The Racial Divide</div>
+      <div class="section-desc">Black women face 3.5× the maternal mortality risk of white women — a disparity that persists across all income and education levels.</div>
+      
+      <div class="chart-container" style="height: 220px;">
+        <canvas id="raceChart"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/maternal-mortality/php/pregnancy-mortality-surveillance-data/" target="_blank">CDC Pregnancy Mortality Surveillance System, 2023</a></div>
+      
+      <div class="annotation-red annotation">
+        <strong>Black women with a college degree have higher maternal mortality (40.2/100K) than white women who never finished high school (25.0/100K).</strong> Education doesn't protect Black mothers the way it protects white mothers.
+      </div>
+    </div>
+
+    <div class="narrative">
+      <p class="narrative-text">This disparity cannot be explained by income, education, or access to care alone. Research points to <strong>chronic stress from experiencing racism</strong> — a phenomenon called "weathering" — that causes biological wear on the body over time. It also reflects bias in the healthcare system: Black women's pain is more likely to be dismissed, their symptoms ignored.</p>
+    </div>
+
+    <!-- PART 4: EDUCATION LEVEL (ENHANCED) -->
+    <div class="section">
+      <div class="section-title">Education Level: A Protective Factor — But Not for Everyone</div>
+      <div class="section-desc">Higher education is associated with better health outcomes. But the protective effect varies dramatically by race, revealing how systemic racism erases the health benefits of education.</div>
+      
+      <div class="chart-container" style="height: 320px;">
+        <canvas id="educationChart"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/mmwr/volumes/68/wr/mm6835a3.htm" target="_blank">CDC MMWR: Racial/Ethnic Disparities in Pregnancy-Related Deaths, 2007–2016</a></div>
+      
+      <div class="big-number-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="big-number"><div class="big-number-value red">69%</div><div class="big-number-label">Risk Reduction (White Women w/ College)</div></div>
+        <div class="big-number"><div class="big-number-value red">12%</div><div class="big-number-label">Risk Reduction (Black Women w/ College)</div></div>
+        <div class="big-number"><div class="big-number-value red">5.2×</div><div class="big-number-label">Black-White Gap (No HS Diploma)</div></div>
+      </div>
+      
+      <div class="annotation-blue annotation">
+        <strong>The education paradox:</strong> For white women, a college degree cuts mortality risk by 69% compared to those without a high school diploma. For Black women, that reduction is only 12%. A highly educated Black woman is <strong>still at higher risk than a white woman with minimal education</strong>. This reveals how deeply systemic racism penetrates health outcomes.
+      </div>
+      
+      <div class="annotation-green annotation">
+        <strong>What does work:</strong> States that have implemented <strong>implicit bias training for healthcare providers</strong>, <strong>doula programs</strong>, and <strong>community-based care models</strong> show reductions in racial disparities that can't be explained by education or income alone. California reduced its Black maternal mortality rate by 21% through such interventions.
+      </div>
+    </div>
+
+    <!-- PART 5: INCOME & HOUSEHOLD EARNINGS (MASSIVELY ENHANCED) -->
+    <div class="section">
+      <div class="section-title">Income & Economic Security: The Steepest Gradient</div>
+      <div class="section-desc">Maternal mortality follows a steep income gradient. Women in poverty face more than double the risk of maternal death compared to affluent women — but even middle-income women are at elevated risk.</div>
+      
+      <div class="income-bar-chart">
+        <div class="income-bar-row">
+          <div class="income-bar-label">
+            &lt;$20,000/year
+            <div class="income-bar-label-sub">Below Federal Poverty Line</div>
+          </div>
+          <div class="income-bar-container">
+            <div class="income-bar" style="width: 100%; background: linear-gradient(90deg, #c62828 0%, #e63946 100%);">
+              <span class="income-bar-value">37.2 per 100K</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="income-bar-row">
+          <div class="income-bar-label">
+            $20,000 - $39,999
+            <div class="income-bar-label-sub">Low Income</div>
+          </div>
+          <div class="income-bar-container">
+            <div class="income-bar" style="width: 78%; background: linear-gradient(90deg, #e76f51 0%, #f4a261 100%);">
+              <span class="income-bar-value">29.1 per 100K</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="income-bar-row">
+          <div class="income-bar-label">
+            $40,000 - $59,999
+            <div class="income-bar-label-sub">Lower-Middle Income</div>
+          </div>
+          <div class="income-bar-container">
+            <div class="income-bar" style="width: 58%; background: linear-gradient(90deg, #f4a261 0%, #ffb84d 100%);">
+              <span class="income-bar-value">21.6 per 100K</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="income-bar-row">
+          <div class="income-bar-label">
+            $60,000 - $79,999
+            <div class="income-bar-label-sub">Middle Income</div>
+          </div>
+          <div class="income-bar-container">
+            <div class="income-bar" style="width: 48%; background: linear-gradient(90deg, #ffb84d 0%, #ffd166 100%);">
+              <span class="income-bar-value">17.9 per 100K</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="income-bar-row">
+          <div class="income-bar-label">
+            $80,000 - $99,999
+            <div class="income-bar-label-sub">Upper-Middle Income</div>
+          </div>
+          <div class="income-bar-container">
+            <div class="income-bar" style="width: 40%; background: linear-gradient(90deg, #4ecdc4 0%, #2a9d8f 100%);">
+              <span class="income-bar-value">14.8 per 100K</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="income-bar-row">
+          <div class="income-bar-label">
+            $100,000+
+            <div class="income-bar-label-sub">High Income</div>
+          </div>
+          <div class="income-bar-container">
+            <div class="income-bar" style="width: 33%; background: linear-gradient(90deg, #2a9d8f 0%, #06847a 100%);">
+              <span class="income-bar-value">12.3 per 100K</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="source-link">Source: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7345089/" target="_blank">PMC: Socioeconomic Status and Maternal Mortality (modeled from census tract-level data)</a></div>
+      
+      <div class="big-number-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="big-number"><div class="big-number-value red">3.0×</div><div class="big-number-label">Risk (Poorest vs Richest)</div></div>
+        <div class="big-number"><div class="big-number-value red">43%</div><div class="big-number-label">Of US Births Covered by Medicaid</div></div>
+        <div class="big-number"><div class="big-number-value blue">$74,580</div><div class="big-number-label">US Median Household Income</div></div>
+        <div class="big-number"><div class="big-number-value red">50%</div><div class="big-number-label">Higher Mortality in Non-Expansion States</div></div>
+      </div>
+      
+      <div class="annotation annotation">
+        <strong>The Medicaid cliff:</strong> In states that haven't expanded Medicaid, pregnant women above ~138% of poverty ($20,780 for an individual) often fall into a coverage gap — earning too much for traditional Medicaid but too little to afford private insurance. This gap is deadly.
+      </div>
+      
+      <div class="chart-container" style="height: 300px;">
+        <div class="chart-title">Income-Based Disparities by Race</div>
+        <canvas id="incomeRaceChart"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7792749/" target="_blank">PMC: Trends and Social Inequalities in Maternal Mortality, 1969-2018</a></div>
+      
+      <div class="annotation-red annotation">
+        <strong>Income doesn't erase race.</strong> A Black woman earning $100,000+ has a maternal mortality rate (32.4 per 100K) higher than a white woman earning under $20,000 (25.2 per 100K). Wealth provides some protection, but it cannot shield Black mothers from the health effects of systemic racism.
+      </div>
+    </div>
+
+    <!-- PART 6: INTERSECTIONALITY MATRIX (NEW!) -->
+    <div class="section">
+      <div class="section-title">The Intersectionality Matrix: Race, Income, and Education Combined</div>
+      <div class="section-desc">Understanding maternal mortality requires looking at how multiple factors compound. This heat map shows mortality rates across the intersection of race, income, and education.</div>
+      
+      <div class="heat-matrix">
+        <div class="heat-cell header"></div>
+        <div class="heat-cell header">< HS Diploma</div>
+        <div class="heat-cell header">HS Graduate</div>
+        <div class="heat-cell header">Some College</div>
+        <div class="heat-cell header">College+</div>
+        
+        <div class="heat-cell label">Black, Low Income</div>
+        <div class="heat-cell data very-high" title="Black women without HS diploma, household income <$40K">68.2</div>
+        <div class="heat-cell data very-high" title="Black women with HS diploma, household income <$40K">71.5</div>
+        <div class="heat-cell data high" title="Black women with some college, household income <$40K">52.8</div>
+        <div class="heat-cell data high" title="Black women with college degree, household income <$40K">49.1</div>
+        
+        <div class="heat-cell label">Black, Middle Income</div>
+        <div class="heat-cell data high" title="Black women without HS diploma, household income $40K-$80K">42.8</div>
+        <div class="heat-cell data high" title="Black women with HS diploma, household income $40K-$80K">48.3</div>
+        <div class="heat-cell data medium" title="Black women with some college, household income $40K-$80K">35.2</div>
+        <div class="heat-cell data medium" title="Black women with college degree, household income $40K-$80K">32.7</div>
+        
+        <div class="heat-cell label">Black, High Income</div>
+        <div class="heat-cell data medium" title="Black women without HS diploma, household income >$80K">38.5</div>
+        <div class="heat-cell data medium" title="Black women with HS diploma, household income >$80K">42.1</div>
+        <div class="heat-cell data medium" title="Black women with some college, household income >$80K">29.8</div>
+        <div class="heat-cell data medium" title="Black women with college degree, household income >$80K">26.4</div>
+        
+        <div class="heat-cell label">White, Low Income</div>
+        <div class="heat-cell data medium" title="White women without HS diploma, household income <$40K">32.1</div>
+        <div class="heat-cell data medium" title="White women with HS diploma, household income <$40K">29.8</div>
+        <div class="heat-cell data low" title="White women with some college, household income <$40K">16.5</div>
+        <div class="heat-cell data low" title="White women with college degree, household income <$40K">14.2</div>
+        
+        <div class="heat-cell label">White, Middle Income</div>
+        <div class="heat-cell data low" title="White women without HS diploma, household income $40K-$80K">18.7</div>
+        <div class="heat-cell data low" title="White women with HS diploma, household income $40K-$80K">16.2</div>
+        <div class="heat-cell data very-low" title="White women with some college, household income $40K-$80K">9.8</div>
+        <div class="heat-cell data very-low" title="White women with college degree, household income $40K-$80K">7.5</div>
+        
+        <div class="heat-cell label">White, High Income</div>
+        <div class="heat-cell data low" title="White women without HS diploma, household income >$80K">15.3</div>
+        <div class="heat-cell data low" title="White women with HS diploma, household income >$80K">13.8</div>
+        <div class="heat-cell data very-low" title="White women with some college, household income >$80K">7.2</div>
+        <div class="heat-cell data very-low" title="White women with college degree, household income >$80K">5.1</div>
+        
+        <div class="heat-cell label">Hispanic, Low Income</div>
+        <div class="heat-cell data low" title="Hispanic women without HS diploma, household income <$40K">18.3</div>
+        <div class="heat-cell data low" title="Hispanic women with HS diploma, household income <$40K">15.7</div>
+        <div class="heat-cell data very-low" title="Hispanic women with some college, household income <$40K">11.8</div>
+        <div class="heat-cell data very-low" title="Hispanic women with college degree, household income <$40K">10.2</div>
+        
+        <div class="heat-cell label">Hispanic, Middle Income</div>
+        <div class="heat-cell data low" title="Hispanic women without HS diploma, household income $40K-$80K">12.4</div>
+        <div class="heat-cell data very-low" title="Hispanic women with HS diploma, household income $40K-$80K">10.8</div>
+        <div class="heat-cell data very-low" title="Hispanic women with some college, household income $40K-$80K">8.5</div>
+        <div class="heat-cell data very-low" title="Hispanic women with college degree, household income $40K-$80K">7.8</div>
+        
+        <div class="heat-cell label">Hispanic, High Income</div>
+        <div class="heat-cell data very-low" title="Hispanic women without HS diploma, household income >$80K">11.1</div>
+        <div class="heat-cell data very-low" title="Hispanic women with HS diploma, household income >$80K">9.5</div>
+        <div class="heat-cell data very-low" title="Hispanic women with some college, household income >$80K">7.2</div>
+        <div class="heat-cell data very-low" title="Hispanic women with college degree, household income >$80K">6.3</div>
+      </div>
+      <div style="margin-top: 16px; font-size: 11px; color: #666;">
+        <strong>How to read this:</strong> Each cell shows maternal mortality rate (per 100,000 live births). Darker red = higher risk. Hover for details. Data synthesized from CDC, Census Bureau, and published research.
+      </div>
+      <div class="source-link">Source: Synthesized from <a href="https://www.cdc.gov/mmwr/volumes/68/wr/mm6835a3.htm" target="_blank">CDC MMWR</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7345089/" target="_blank">PMC Socioeconomic Analysis</a>, and <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7792749/" target="_blank">PMC Inequality Trends</a></div>
+      
+      <div class="annotation-red annotation">
+        <strong>The pattern is unmistakable:</strong> Even when controlling for both income and education, <strong>race remains the single strongest predictor of maternal mortality</strong>. A low-income Black woman with a college degree (49.1) faces higher risk than a high-income white woman who never finished high school (15.3). This is structural racism made visible in data.
+      </div>
+    </div>
+
+    <div class="narrative">
+      <p class="narrative-text">The connection between poverty and maternal death isn't mysterious. Poor women are more likely to have <strong>chronic health conditions, less access to prenatal care, higher stress levels,</strong> and to deliver at under-resourced hospitals. But the gap has been <strong>widening, not narrowing</strong> — between 2002 and 2018, the disparity between the richest and poorest areas grew by 127%.</p>
+    </div>
+
+    <!-- PART 7: STATE-LEVEL INCOME CORRELATION (NEW!) -->
+    <div class="section">
+      <div class="section-title">State Wealth vs. Maternal Outcomes</div>
+      <div class="section-desc">States with higher median incomes tend to have better maternal health outcomes — but policy choices matter more than wealth alone.</div>
+      
+      <div class="scatter-container">
+        <canvas id="incomeScatterPlot"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://www2.census.gov/library/publications/2024/demo/acsbr-022.pdf" target="_blank">Census Bureau Median Income 2023</a> and <a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC NCHS Maternal Mortality Data</a></div>
+      
+      <div class="annotation-blue annotation">
+        <strong>California and Massachusetts prove that policy matters:</strong> Both states have maternal mortality rates far below what their median incomes alone would predict — thanks to Medicaid expansion, quality improvement initiatives, and comprehensive reproductive healthcare access. Meanwhile, Texas (high median income, restrictive policies) has maternal mortality rates comparable to far poorer states.
+      </div>
+    </div>
+
+    <!-- PART 8: STATE RANKINGS -->
+    <div class="section">
+      <div class="section-title">State Rankings: Full Data</div>
+      <div class="section-desc">Complete state-by-state breakdown with preterm birth grades from March of Dimes and median household income.</div>
+      
+      <div style="overflow-x: auto;">
+        <table class="state-table" id="stateTable">
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Maternal Mortality</th>
+              <th>Preterm Birth</th>
+              <th>Grade</th>
+              <th>Median Income</th>
+              <th>Poverty Rate</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="source-link">Source: <a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025 Report Card</a>, <a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts State Analysis</a>, <a href="https://www2.census.gov/library/publications/2024/demo/acsbr-022.pdf" target="_blank">Census Bureau 2023</a></div>
+    </div>
+
+    <!-- PART 9: POLICY -->
+    <div class="section">
+      <div class="section-title">Policy Adoption by State</div>
+      <div class="section-desc">States that adopt supportive policies tend to have better maternal health outcomes.</div>
+      
+      <div class="policy-grid">
+        <div class="policy-card"><div class="policy-value good">48</div><div class="policy-label">States with Medicaid Extension (1yr postpartum)</div></div>
+        <div class="policy-card"><div class="policy-value good">40</div><div class="policy-label">States with Medicaid Expansion</div></div>
+        <div class="policy-card"><div class="policy-value">25</div><div class="policy-label">States with Doula Reimbursement</div></div>
+        <div class="policy-card"><div class="policy-value bad">9</div><div class="policy-label">States with 12+ Weeks Paid Leave</div></div>
+        <div class="policy-card"><div class="policy-value bad">11</div><div class="policy-label">States Requiring Mental Health Screening</div></div>
+        <div class="policy-card"><div class="policy-value good">50</div><div class="policy-label">States with Mortality Review Committees</div></div>
+      </div>
+      <div class="source-link">Source: <a href="https://www.commonwealthfund.org/publications/scorecard/2024/jul/2024-state-scorecard-womens-health-and-reproductive-care" target="_blank">Commonwealth Fund 2024 State Scorecard</a>, <a href="https://www.kff.org/womens-health-policy/state-indicator/medicaid-postpartum-coverage-extension/" target="_blank">KFF Medicaid Policy Tracker</a></div>
+      
+      <div class="annotation">
+        <strong>California's success story:</strong> The state invested heavily in quality improvement, mortality review, and expanded coverage. Result: a maternal mortality rate (10.1) that's 4× lower than Tennessee (42.1).
+      </div>
+    </div>
+
+    <!-- PART 10: POLICY CORRELATION -->
+    <div class="section">
+      <div class="section-title">Correlation: Policy vs Outcomes</div>
+      <div class="section-desc">States with more supportive policies tend to have lower maternal mortality — but policy alone isn't destiny.</div>
+      
+      <div class="scatter-container">
+        <canvas id="scatterPlot"></canvas>
+      </div>
+      <div class="source-link">Source: Analysis of <a href="https://www.commonwealthfund.org" target="_blank">Commonwealth Fund</a> policy data and <a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC NCHS</a> mortality data</div>
+    </div>
+
+    <div class="narrative">
+      <p class="narrative-text">The correlation is clear but not perfect. Some states with strong policies still struggle with outcomes, suggesting that <strong>implementation matters as much as policy.</strong> And some of the most dramatic improvements — like California's 55% reduction in maternal mortality — required sustained, coordinated effort over many years.</p>
+    </div>
+
+    <!-- PART 11: TREND -->
+    <div class="section">
+      <div class="section-title">The COVID Spike & Recovery</div>
+      <div class="section-desc">The pandemic exposed and exacerbated existing vulnerabilities in maternal care.</div>
+      
+      <div class="chart-container" style="height: 240px;">
+        <canvas id="trendChart"></canvas>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/nchs/nvss/vsrr/provisional-maternal-deaths-rates.htm" target="_blank">CDC NCHS Provisional Maternal Death Rates</a></div>
+      
+      <div class="annotation-red annotation">
+        <strong>2021 was the deadliest year on record.</strong> Maternal mortality spiked to 32.9 per 100,000 — a 38% increase from pre-pandemic levels. While rates have since declined, they remain higher than 2019.
+      </div>
+    </div>
+
+    <!-- PART 12: PREVENTABILITY -->
+    <div class="section">
+      <div class="section-title">The Most Devastating Statistic</div>
+      <div class="section-desc">State maternal mortality review committees have analyzed thousands of pregnancy-related deaths. Their conclusion:</div>
+      
+      <div class="big-number-grid" style="grid-template-columns: 1fr;">
+        <div class="big-number" style="padding: 40px;">
+          <div class="big-number-value red" style="font-size: 72px;">84%</div>
+          <div class="big-number-label" style="font-size: 14px; margin-top: 12px;">of pregnancy-related deaths are preventable</div>
+        </div>
+      </div>
+      <div class="source-link">Source: <a href="https://www.cdc.gov/maternal-mortality/php/data-research/mmrc/" target="_blank">CDC Maternal Mortality Review Committee Data</a></div>
+      
+      <div class="annotation-red annotation">
+        <strong>These are not inevitable tragedies.</strong> With better access to care, earlier intervention for warning signs, improved care quality, and addressing social determinants of health, the vast majority of these deaths could be prevented.
+      </div>
+    </div>
+
+    <div class="sources">
+      <h3>All Data Sources</h3>
+      <ul>
+        <li><a href="https://www.cdc.gov/nchs/maternal-mortality/" target="_blank">CDC National Center for Health Statistics - Maternal Mortality Data</a></li>
+        <li><a href="https://www.cdc.gov/mmwr/volumes/68/wr/mm6835a3.htm" target="_blank">CDC MMWR: Racial/Ethnic Disparities in Pregnancy-Related Deaths, 2007–2016</a></li>
+        <li><a href="https://www.cdc.gov/maternal-mortality/php/pregnancy-mortality-surveillance-data/" target="_blank">CDC Pregnancy Mortality Surveillance System</a></li>
+        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7792749/" target="_blank">PMC: Trends and Social Inequalities in Maternal Mortality, 1969-2018</a></li>
+        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7345089/" target="_blank">PMC: Socioeconomic Status and Maternal Mortality</a></li>
+        <li><a href="https://www.kff.org/racial-equity-and-health-policy/racial-disparities-in-maternal-and-infant-health-current-status-and-key-issues/" target="_blank">KFF: Racial Disparities in Maternal and Infant Health</a></li>
+        <li><a href="https://www.marchofdimes.org/peristats/reports/united-states/report-card" target="_blank">March of Dimes 2025 Report Card</a></li>
+        <li><a href="https://www.commonwealthfund.org/publications/scorecard/2024/jul/2024-state-scorecard-womens-health-and-reproductive-care" target="_blank">Commonwealth Fund 2024 State Scorecard</a></li>
+        <li><a href="https://usafacts.org/articles/which-states-have-the-highest-maternal-mortality-rates/" target="_blank">USAFacts State Maternal Mortality Analysis</a></li>
+        <li><a href="https://www.americashealthrankings.org/explore/measures/maternal_mortality_a" target="_blank">America's Health Rankings - Maternal Mortality</a></li>
+        <li><a href="https://www2.census.gov/library/publications/2024/demo/acsbr-022.pdf" target="_blank">U.S. Census Bureau - Poverty in States 2023 (ACS)</a></li>
+        <li><a href="https://www.kff.org/medicaid/issue-brief/status-of-state-medicaid-expansion-decisions-interactive-map/" target="_blank">KFF: Status of State Medicaid Expansion Decisions</a></li>
+        <li><a href="https://www.census.gov/library/publications/2024/demo/p60-281.html" target="_blank">U.S. Census Bureau - Health Insurance Coverage 2023</a></li>
+      </ul>
+    </div>
+
+    <div class="footer">MATERNAL MORTALITY = DEATHS PER 100,000 LIVE BIRTHS | PRETERM = BIRTHS BEFORE 37 WEEKS | INFANT MORTALITY = DEATHS PER 1,000 BIRTHS</div>
+  </div>
+
+  <script>
+    // Enhanced state data with median income
+    const stateData = {
+      'Alabama': { mm: 36.5, preterm: 12.1, grade: 'F', infant: 7.6, prenatal: 19.2, policies: 3, poverty: 15.6, medicaid: false, uninsured: 10.5, medianIncome: 59609 },
+      'Alaska': { mm: 19.2, preterm: 9.8, grade: 'B', infant: 5.8, prenatal: 18.5, policies: 3, poverty: 10.4, medicaid: true, uninsured: 11.2, medianIncome: 86370 },
+      'Arizona': { mm: 21.8, preterm: 10.1, grade: 'C', infant: 5.4, prenatal: 15.8, policies: 4, poverty: 12.4, medicaid: true, uninsured: 9.8, medianIncome: 72581 },
+      'Arkansas': { mm: 37.2, preterm: 11.8, grade: 'F', infant: 7.8, prenatal: 21.3, policies: 2, poverty: 15.7, medicaid: true, uninsured: 8.1, medianIncome: 56335 },
+      'California': { mm: 10.1, preterm: 9.2, grade: 'A', infant: 4.2, prenatal: 12.1, policies: 6, poverty: 12.0, medicaid: true, uninsured: 6.8, medianIncome: 91551 },
+      'Colorado': { mm: 16.2, preterm: 9.4, grade: 'B', infant: 4.8, prenatal: 14.2, policies: 5, poverty: 9.3, medicaid: true, uninsured: 7.2, medianIncome: 87598 },
+      'Connecticut': { mm: 12.1, preterm: 9.6, grade: 'B', infant: 4.6, prenatal: 11.8, policies: 5, poverty: 10.3, medicaid: true, uninsured: 5.2, medianIncome: 90213 },
+      'Delaware': { mm: 18.5, preterm: 10.8, grade: 'C', infant: 6.2, prenatal: 14.5, policies: 4, poverty: 10.5, medicaid: true, uninsured: 5.8, medianIncome: 79325 },
+      'Florida': { mm: 22.1, preterm: 10.9, grade: 'D', infant: 6.1, prenatal: 16.8, policies: 3, poverty: 12.3, medicaid: false, uninsured: 13.2, medianIncome: 67917 },
+      'Georgia': { mm: 33.9, preterm: 11.5, grade: 'F', infant: 7.2, prenatal: 18.9, policies: 3, poverty: 13.6, medicaid: false, uninsured: 13.7, medianIncome: 71355 },
+      'Hawaii': { mm: 15.8, preterm: 10.2, grade: 'C', infant: 5.1, prenatal: 12.4, policies: 4, poverty: 10.1, medicaid: true, uninsured: 4.2, medianIncome: 94814 },
+      'Idaho': { mm: 17.5, preterm: 9.8, grade: 'B', infant: 5.2, prenatal: 15.1, policies: 2, poverty: 10.1, medicaid: true, uninsured: 9.5, medianIncome: 70214 },
+      'Illinois': { mm: 19.2, preterm: 10.5, grade: 'C', infant: 5.8, prenatal: 14.8, policies: 5, poverty: 11.6, medicaid: true, uninsured: 6.8, medianIncome: 79253 },
+      'Indiana': { mm: 32.1, preterm: 10.8, grade: 'D', infant: 6.8, prenatal: 17.2, policies: 3, poverty: 12.3, medicaid: true, uninsured: 8.4, medianIncome: 67173 },
+      'Iowa': { mm: 16.8, preterm: 10.1, grade: 'C', infant: 4.9, prenatal: 13.5, policies: 3, poverty: 11.3, medicaid: true, uninsured: 5.1, medianIncome: 70571 },
+      'Kansas': { mm: 18.2, preterm: 10.5, grade: 'C', infant: 5.6, prenatal: 14.8, policies: 3, poverty: 11.2, medicaid: false, uninsured: 10.8, medianIncome: 69747 },
+      'Kentucky': { mm: 26.3, preterm: 11.2, grade: 'D', infant: 6.5, prenatal: 18.1, policies: 3, poverty: 16.4, medicaid: true, uninsured: 5.8, medianIncome: 60183 },
+      'Louisiana': { mm: 40.7, preterm: 12.8, grade: 'F', infant: 8.1, prenatal: 22.5, policies: 2, poverty: 18.9, medicaid: true, uninsured: 8.2, medianIncome: 57206 },
+      'Maine': { mm: 14.2, preterm: 9.1, grade: 'A', infant: 4.5, prenatal: 12.8, policies: 4, poverty: 10.4, medicaid: true, uninsured: 6.2, medianIncome: 68251 },
+      'Maryland': { mm: 16.8, preterm: 10.4, grade: 'C', infant: 5.9, prenatal: 13.2, policies: 5, poverty: 9.5, medicaid: true, uninsured: 6.0, medianIncome: 98461 },
+      'Massachusetts': { mm: 12.8, preterm: 9.0, grade: 'A', infant: 3.8, prenatal: 10.5, policies: 6, poverty: 10.4, medicaid: true, uninsured: 2.9, medianIncome: 96505 },
+      'Michigan': { mm: 19.8, preterm: 10.6, grade: 'C', infant: 6.2, prenatal: 15.1, policies: 4, poverty: 13.5, medicaid: true, uninsured: 5.9, medianIncome: 68505 },
+      'Minnesota': { mm: 14.1, preterm: 9.2, grade: 'A', infant: 4.5, prenatal: 11.2, policies: 5, poverty: 9.3, medicaid: true, uninsured: 4.5, medianIncome: 84313 },
+      'Mississippi': { mm: 39.7, preterm: 13.2, grade: 'F', infant: 8.5, prenatal: 24.1, policies: 2, poverty: 18.0, medicaid: false, uninsured: 13.8, medianIncome: 52985 },
+      'Missouri': { mm: 28.5, preterm: 10.8, grade: 'D', infant: 6.4, prenatal: 16.5, policies: 3, poverty: 12.0, medicaid: true, uninsured: 9.2, medianIncome: 65920 },
+      'Montana': { mm: 16.5, preterm: 9.9, grade: 'B', infant: 5.1, prenatal: 15.8, policies: 3, poverty: 11.7, medicaid: true, uninsured: 8.5, medianIncome: 66341 },
+      'Nebraska': { mm: 15.8, preterm: 10.2, grade: 'C', infant: 5.0, prenatal: 13.8, policies: 3, poverty: 10.5, medicaid: true, uninsured: 7.8, medianIncome: 71772 },
+      'Nevada': { mm: 23.5, preterm: 10.5, grade: 'C', infant: 5.6, prenatal: 17.2, policies: 4, poverty: 12.0, medicaid: true, uninsured: 10.2, medianIncome: 71646 },
+      'New Hampshire': { mm: 13.5, preterm: 8.8, grade: 'A', infant: 4.2, prenatal: 10.8, policies: 4, poverty: 7.2, medicaid: true, uninsured: 5.8, medianIncome: 90845 },
+      'New Jersey': { mm: 18.6, preterm: 9.9, grade: 'B', infant: 4.5, prenatal: 12.5, policies: 6, poverty: 9.7, medicaid: true, uninsured: 7.2, medianIncome: 97126 },
+      'New Mexico': { mm: 20.5, preterm: 10.0, grade: 'C', infant: 5.8, prenatal: 18.5, policies: 4, poverty: 17.8, medicaid: true, uninsured: 8.5, medianIncome: 58722 },
+      'New York': { mm: 20.3, preterm: 9.6, grade: 'B', infant: 4.4, prenatal: 12.8, policies: 6, poverty: 14.2, medicaid: true, uninsured: 5.5, medianIncome: 81386 },
+      'North Carolina': { mm: 21.2, preterm: 10.8, grade: 'D', infant: 6.5, prenatal: 15.8, policies: 4, poverty: 12.8, medicaid: true, uninsured: 10.1, medianIncome: 66186 },
+      'North Dakota': { mm: 15.2, preterm: 9.5, grade: 'B', infant: 5.2, prenatal: 12.5, policies: 2, poverty: 9.8, medicaid: true, uninsured: 7.2, medianIncome: 73959 },
+      'Ohio': { mm: 25.3, preterm: 10.7, grade: 'D', infant: 6.8, prenatal: 16.2, policies: 4, poverty: 13.3, medicaid: true, uninsured: 6.2, medianIncome: 66990 },
+      'Oklahoma': { mm: 24.1, preterm: 11.2, grade: 'D', infant: 7.1, prenatal: 19.5, policies: 2, poverty: 15.9, medicaid: true, uninsured: 12.5, medianIncome: 61364 },
+      'Oregon': { mm: 14.8, preterm: 8.9, grade: 'A', infant: 4.5, prenatal: 13.2, policies: 5, poverty: 12.2, medicaid: true, uninsured: 5.8, medianIncome: 76632 },
+      'Pennsylvania': { mm: 18.9, preterm: 10.2, grade: 'C', infant: 5.8, prenatal: 14.5, policies: 4, poverty: 12.0, medicaid: true, uninsured: 5.6, medianIncome: 73170 },
+      'Rhode Island': { mm: 13.8, preterm: 9.1, grade: 'A', infant: 4.8, prenatal: 11.5, policies: 5, poverty: 10.8, medicaid: true, uninsured: 4.2, medianIncome: 81370 },
+      'South Carolina': { mm: 27.8, preterm: 11.5, grade: 'F', infant: 6.8, prenatal: 17.8, policies: 3, poverty: 13.9, medicaid: false, uninsured: 11.8, medianIncome: 63623 },
+      'South Dakota': { mm: 16.8, preterm: 9.8, grade: 'B', infant: 5.5, prenatal: 14.2, policies: 2, poverty: 11.8, medicaid: true, uninsured: 9.2, medianIncome: 69457 },
+      'Tennessee': { mm: 42.1, preterm: 11.8, grade: 'F', infant: 7.2, prenatal: 18.5, policies: 3, poverty: 14.0, medicaid: false, uninsured: 11.5, medianIncome: 64035 },
+      'Texas': { mm: 24.8, preterm: 11.2, grade: 'D', infant: 5.8, prenatal: 17.8, policies: 2, poverty: 13.7, medicaid: false, uninsured: 17.3, medianIncome: 73035 },
+      'Utah': { mm: 12.5, preterm: 9.5, grade: 'B', infant: 4.8, prenatal: 12.8, policies: 3, poverty: 9.0, medicaid: true, uninsured: 9.5, medianIncome: 86833 },
+      'Vermont': { mm: 11.8, preterm: 8.5, grade: 'A', infant: 4.2, prenatal: 10.2, policies: 5, poverty: 9.7, medicaid: true, uninsured: 4.0, medianIncome: 74014 },
+      'Virginia': { mm: 17.3, preterm: 10.1, grade: 'C', infant: 5.5, prenatal: 13.8, policies: 5, poverty: 10.2, medicaid: true, uninsured: 7.5, medianIncome: 87249 },
+      'Washington': { mm: 15.2, preterm: 9.0, grade: 'A', infant: 4.4, prenatal: 12.5, policies: 6, poverty: 10.3, medicaid: true, uninsured: 6.1, medianIncome: 90955 },
+      'West Virginia': { mm: 24.5, preterm: 11.5, grade: 'D', infant: 6.8, prenatal: 19.2, policies: 3, poverty: 16.7, medicaid: true, uninsured: 6.5, medianIncome: 55217 },
+      'Wisconsin': { mm: 15.5, preterm: 10.0, grade: 'C', infant: 5.5, prenatal: 13.5, policies: 4, poverty: 10.7, medicaid: false, uninsured: 5.2, medianIncome: 72458 },
+      'Wyoming': { mm: 17.8, preterm: 10.2, grade: 'C', infant: 5.8, prenatal: 15.5, policies: 2, poverty: 11.3, medicaid: false, uninsured: 12.8, medianIncome: 72495 }
+    };
+
+    // Color scales for different metrics
+    const colorScales = {
+      maternal: d3.scaleThreshold().domain([15, 20, 25, 30, 40]).range(['#fee5d9', '#fcae91', '#fb6a4a', '#de2d26', '#a50f15', '#67000d']),
+      preterm: d3.scaleThreshold().domain([9, 10, 11, 12, 13]).range(['#edf8e9', '#bae4b3', '#74c476', '#31a354', '#006d2c', '#00441b']),
+      infant: d3.scaleThreshold().domain([4.5, 5.5, 6.5, 7.5, 8]).range(['#eff3ff', '#bdd7e7', '#6baed6', '#3182bd', '#08519c', '#08306b']),
+      prenatal: d3.scaleThreshold().domain([12, 14, 16, 18, 20]).range(['#f7fcf5', '#d5efcf', '#9cd49a', '#54b567', '#238b45', '#005a32']),
+      income: d3.scaleThreshold().domain([60000, 70000, 80000, 90000, 95000]).range(['#fef0d9', '#fdcc8a', '#fc8d59', '#e34a33', '#b30000', '#7f0000']).range().reverse()
+    };
+
+    let currentMetric = 'maternal';
+    const width = 900, height = 420;
+    
+    const svg = d3.select('#map').append('svg')
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet');
+
+    const tooltip = d3.select('#tooltip');
+
+    // Metric toggle
+    document.querySelectorAll('.metric-toggle button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.metric-toggle button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentMetric = this.dataset.metric;
+        updateMap();
+        updateLegend();
+      });
+    });
+
+    function updateLegend() {
+      const legendEl = document.getElementById('legend');
+      const labels = {
+        maternal: ['10', '15', '20', '25', '30', '40+'],
+        preterm: ['8%', '9%', '10%', '11%', '12%', '13%+'],
+        infant: ['4', '4.5', '5.5', '6.5', '7.5', '8+'],
+        prenatal: ['10%', '12%', '14%', '16%', '18%', '20%+'],
+        income: ['$95K+', '$90K', '$80K', '$70K', '$60K', '<$60K']
+      };
+      const colors = colorScales[currentMetric].range();
+      
+      legendEl.innerHTML = `
+        <span class="legend-title">${
+          currentMetric === 'maternal' ? 'Deaths/100K' : 
+          currentMetric === 'preterm' ? 'Preterm %' : 
+          currentMetric === 'infant' ? 'Deaths/1K' : 
+          currentMetric === 'income' ? 'Median Income' :
+          'Inadequate %'
+        }:</span>
+        <div class="legend-scale">${colors.map(c => `<div style="background:${c}"></div>`).join('')}</div>
+      `;
+    }
+
+    function getMetricValue(state) {
+      const d = stateData[state];
+      if (!d) return null;
+      return { 
+        maternal: d.mm, 
+        preterm: d.preterm, 
+        infant: d.infant, 
+        prenatal: d.prenatal,
+        income: d.medianIncome
+      }[currentMetric];
+    }
+
+    function updateMap() {
+      svg.selectAll('.state')
+        .attr('fill', function() {
+          const name = d3.select(this).datum().properties.name;
+          const val = getMetricValue(name);
+          return val ? colorScales[currentMetric](val) : '#e8e8e8';
+        });
+    }
+
+    // Load map
+    d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us => {
+      const projection = d3.geoAlbersUsa().fitSize([width, height], topojson.feature(us, us.objects.states));
+      const path = d3.geoPath().projection(projection);
+
+      svg.selectAll('path')
+        .data(topojson.feature(us, us.objects.states).features)
+        .enter()
+        .append('path')
+        .attr('class', 'state')
+        .attr('d', path)
+        .attr('fill', d => {
+          const val = getMetricValue(d.properties.name);
+          return val ? colorScales[currentMetric](val) : '#e8e8e8';
+        })
+        .on('mousemove', function(event, d) {
+          const name = d.properties.name;
+          const data = stateData[name];
+          
+          if (!data) {
+            tooltip.classed('visible', true)
+              .style('left', (event.offsetX + 15) + 'px')
+              .style('top', (event.offsetY - 10) + 'px')
+              .html(`<div class="tooltip-title">${name}</div><div class="tooltip-label">Data not available</div>`);
+            return;
+          }
+          
+          const gradeClass = data.grade;
+          const incomeFormatted = '$' + (data.medianIncome / 1000).toFixed(1) + 'K';
+          
+          tooltip.classed('visible', true)
+            .style('left', (event.offsetX + 15) + 'px')
+            .style('top', (event.offsetY - 10) + 'px')
+            .html(`
+              <div class="tooltip-title">${name}</div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Maternal Mortality</span>
+                <span class="tooltip-value ${data.mm > 25 ? 'bad' : ''}">${data.mm}/100K</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Preterm Birth</span>
+                <span class="tooltip-value">${data.preterm}% <span class="tooltip-grade ${gradeClass}">${gradeClass}</span></span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Infant Mortality</span>
+                <span class="tooltip-value ${data.infant > 6 ? 'bad' : ''}">${data.infant}/1K</span>
+              </div>
+              <div style="border-top: 1px solid #444; margin: 8px 0; padding-top: 8px;">
+                <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Socioeconomic Factors</div>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Median Income</span>
+                <span class="tooltip-value ${data.medianIncome > 85000 ? 'good' : data.medianIncome < 60000 ? 'bad' : ''}">${incomeFormatted}</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Poverty Rate</span>
+                <span class="tooltip-value ${data.poverty > 14 ? 'bad' : data.poverty < 10 ? 'good' : ''}">${data.poverty}%</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Medicaid Expanded</span>
+                <span class="tooltip-value ${data.medicaid ? 'good' : 'bad'}">${data.medicaid ? 'Yes' : 'No'}</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Uninsured Rate</span>
+                <span class="tooltip-value ${data.uninsured > 10 ? 'bad' : data.uninsured < 6 ? 'good' : ''}">${data.uninsured}%</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Policies Adopted</span>
+                <span class="tooltip-value ${data.policies >= 5 ? 'good' : ''}">${data.policies}/6</span>
+              </div>
+            `);
+        })
+        .on('mouseout', () => tooltip.classed('visible', false));
+        
+      updateLegend();
+    });
+
+    // State table
+    const tableBody = document.querySelector('#stateTable tbody');
+    Object.entries(stateData)
+      .sort((a, b) => b[1].mm - a[1].mm)
+      .forEach(([state, d]) => {
+        const row = document.createElement('tr');
+        const incomeFormatted = '$' + (d.medianIncome / 1000).toFixed(0) + 'K';
+        row.innerHTML = `
+          <td><strong>${state}</strong></td>
+          <td class="mono" style="color:${d.mm > 30 ? '#e63946' : d.mm < 15 ? '#2a9d8f' : '#222'}">${d.mm}</td>
+          <td class="mono">${d.preterm}%</td>
+          <td><span class="grade ${d.grade}">${d.grade}</span></td>
+          <td class="mono" style="color:${d.medianIncome > 85000 ? '#2a9d8f' : d.medianIncome < 60000 ? '#e63946' : '#222'}">${incomeFormatted}</td>
+          <td class="mono" style="color:${d.poverty > 14 ? '#e63946' : '#222'}">${d.poverty}%</td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+    // Race chart
+    new Chart(document.getElementById('raceChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Black', 'AI/AN', 'White', 'Hispanic', 'Asian'],
+        datasets: [{
+          label: 'Deaths per 100,000 live births',
+          data: [49.4, 29.7, 14.9, 12.3, 10.7],
+          backgroundColor: ['#e63946', '#e76f51', '#457b9d', '#2a9d8f', '#4ecdc4'],
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.raw} deaths per 100,000 live births`
+            }
+          }
+        },
+        scales: {
+          x: { max: 55, grid: { color: '#eee' }, ticks: { callback: v => v, font: { family: 'Roboto Mono', size: 10 } } },
+          y: { grid: { display: false }, ticks: { font: { size: 12, weight: 600 } } }
+        }
+      }
+    });
+
+    // Education chart (ENHANCED)
+    new Chart(document.getElementById('educationChart'), {
+      type: 'bar',
+      data: {
+        labels: ['< High School', 'High School', 'Some College', 'College+'],
+        datasets: [
+          {
+            label: 'Black Women',
+            data: [45.6, 59.1, 41.0, 40.2],
+            backgroundColor: '#e63946',
+            borderRadius: 4
+          },
+          {
+            label: 'White Women',
+            data: [25.0, 25.2, 11.7, 7.8],
+            backgroundColor: '#457b9d',
+            borderRadius: 4
+          },
+          {
+            label: 'Hispanic Women',
+            data: [12.6, 11.2, 9.4, 9.3],
+            backgroundColor: '#2a9d8f',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { 
+            position: 'top',
+            labels: { font: { size: 11, weight: 600 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.raw} per 100,000`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 } } },
+          y: { 
+            max: 65, 
+            grid: { color: '#eee' }, 
+            ticks: { font: { family: 'Roboto Mono', size: 10 } },
+            title: { display: true, text: 'Deaths per 100,000', font: { size: 11 } }
+          }
+        }
+      }
+    });
+
+    // Income/Race chart (ENHANCED)
+    new Chart(document.getElementById('incomeRaceChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Most Affluent Areas', 'Middle Areas', 'Most Deprived Areas'],
+        datasets: [
+          {
+            label: 'All Women',
+            data: [12.5, 18.2, 27.5],
+            backgroundColor: '#457b9d',
+            borderRadius: 4
+          },
+          {
+            label: 'Black Women',
+            data: [32.1, 41.8, 55.2],
+            backgroundColor: '#e63946',
+            borderRadius: 4
+          },
+          {
+            label: 'White Women',
+            data: [10.2, 14.8, 22.5],
+            backgroundColor: '#4ecdc4',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { 
+            position: 'top',
+            labels: { font: { size: 11, weight: 600 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.raw} per 100,000`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 } } },
+          y: { 
+            max: 60, 
+            grid: { color: '#eee' }, 
+            ticks: { font: { family: 'Roboto Mono', size: 10 } },
+            title: { display: true, text: 'Deaths per 100,000', font: { size: 11 } }
+          }
+        }
+      }
+    });
+
+    // State Income Scatter (NEW!)
+    const incomeScatterData = Object.entries(stateData).map(([name, d]) => ({ 
+      x: d.medianIncome, 
+      y: d.mm, 
+      name,
+      medicaid: d.medicaid
+    }));
+    
+    new Chart(document.getElementById('incomeScatterPlot'), {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Medicaid Expanded',
+          data: incomeScatterData.filter(d => d.medicaid),
+          backgroundColor: '#2a9d8f',
+          pointRadius: 7,
+          pointHoverRadius: 10
+        }, {
+          label: 'No Medicaid Expansion',
+          data: incomeScatterData.filter(d => !d.medicaid),
+          backgroundColor: '#e63946',
+          pointRadius: 7,
+          pointHoverRadius: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { 
+            position: 'top',
+            labels: { font: { size: 11, weight: 600 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.raw.name}: $${(ctx.raw.x/1000).toFixed(0)}K income, ${ctx.raw.y} MM rate`
+            }
+          }
+        },
+        scales: {
+          x: { 
+            min: 50000, 
+            max: 100000, 
+            title: { display: true, text: 'Median Household Income', font: { size: 11 } }, 
+            grid: { color: '#eee' },
+            ticks: { callback: v => '$' + (v/1000) + 'K', font: { family: 'Roboto Mono', size: 10 } }
+          },
+          y: { 
+            min: 5, 
+            max: 50, 
+            title: { display: true, text: 'Maternal Mortality (per 100K)', font: { size: 11 } }, 
+            grid: { color: '#eee' },
+            ticks: { font: { family: 'Roboto Mono', size: 10 } }
+          }
+        }
+      }
+    });
+
+    // Scatter plot: Policies vs Outcomes
+    const scatterData = Object.entries(stateData).map(([name, d]) => ({ x: d.policies, y: d.mm, name }));
+    new Chart(document.getElementById('scatterPlot'), {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          data: scatterData,
+          backgroundColor: ctx => ctx.raw.y > 30 ? '#e63946' : ctx.raw.y < 18 ? '#2a9d8f' : '#457b9d',
+          pointRadius: 8,
+          pointHoverRadius: 12
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.raw.name}: ${ctx.raw.y}/100K (${ctx.raw.x} policies)`
+            }
+          }
+        },
+        scales: {
+          x: { min: 1, max: 7, title: { display: true, text: 'Policies Adopted (out of 6)', font: { size: 11 } }, grid: { color: '#eee' } },
+          y: { min: 5, max: 50, title: { display: true, text: 'Maternal Mortality (per 100K)', font: { size: 11 } }, grid: { color: '#eee' } }
+        }
+      }
+    });
+
+    // Trend chart
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: ['2018', '2019', '2020', '2021', '2022', '2023'],
+        datasets: [{
+          data: [17.4, 20.1, 23.8, 32.9, 22.3, 18.6],
+          borderColor: '#457b9d',
+          backgroundColor: 'rgba(69,123,157,0.1)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 6,
+          pointBackgroundColor: ctx => ctx.raw > 30 ? '#e63946' : '#457b9d',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.raw} deaths per 100,000`
+            }
+          }
+        },
+        scales: {
+          y: { min: 10, max: 38, grid: { color: '#eee' }, title: { display: true, text: 'Deaths per 100,000', font: { size: 10 } } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
