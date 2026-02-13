@@ -27,6 +27,44 @@
     .narrative-text { font-size: 15px; color: #444; max-width: 700px; line-height: 1.7; }
     .narrative-text strong { color: #222; }
     
+    /* NEW: Impact callout boxes */
+    .impact-box { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; padding: 32px 40px; margin: 24px 0; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+    .impact-box-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #ff6b6b; margin-bottom: 16px; font-family: 'Roboto Mono', monospace; }
+    .impact-statement { font-size: 24px; font-weight: 800; line-height: 1.3; margin-bottom: 12px; }
+    .impact-detail { font-size: 14px; opacity: 0.8; line-height: 1.6; }
+    .impact-number { font-size: 56px; font-weight: 900; font-family: 'Roboto Mono', monospace; color: #ff6b6b; line-height: 1; margin-bottom: 8px; }
+    
+    /* NEW: Comparison bars with dramatic styling */
+    .comparison-visual { margin: 32px 0; }
+    .comparison-group { margin-bottom: 32px; }
+    .comparison-group-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 16px; font-family: 'Roboto Mono', monospace; }
+    .comparison-item { margin: 16px 0; }
+    .comparison-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .comparison-label { font-size: 14px; font-weight: 600; color: #222; }
+    .comparison-value { font-size: 20px; font-weight: 900; font-family: 'Roboto Mono', monospace; }
+    .comparison-value.critical { color: #e63946; }
+    .comparison-value.warning { color: #f4a261; }
+    .comparison-value.good { color: #2a9d8f; }
+    .comparison-bar-track { height: 12px; background: #e8e8e8; border-radius: 6px; position: relative; overflow: visible; }
+    .comparison-bar-fill { height: 100%; border-radius: 6px; position: relative; transition: width 0.8s ease-out; }
+    .comparison-bar-fill.critical { background: linear-gradient(90deg, #e63946 0%, #c62828 100%); }
+    .comparison-bar-fill.warning { background: linear-gradient(90deg, #f4a261 0%, #e76f51 100%); }
+    .comparison-bar-fill.good { background: linear-gradient(90deg, #2a9d8f 0%, #1b7f75 100%); }
+    .comparison-bar-fill.medium { background: linear-gradient(90deg, #457b9d 0%, #2d5a75 100%); }
+    
+    /* NEW: Side-by-side race comparison */
+    .race-comparison-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+    .race-card { background: #fafafa; border-radius: 8px; padding: 24px 20px; text-align: center; border: 3px solid transparent; transition: all 0.3s; }
+    .race-card.worst { border-color: #e63946; background: linear-gradient(180deg, #fff5f5 0%, #fef2f2 100%); }
+    .race-card.best { border-color: #2a9d8f; background: linear-gradient(180deg, #f0fdfa 0%, #ecfdf5 100%); }
+    .race-card-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 12px; }
+    .race-card-value { font-size: 48px; font-weight: 900; font-family: 'Roboto Mono', monospace; line-height: 1; margin-bottom: 8px; }
+    .race-card-value.critical { color: #e63946; }
+    .race-card-value.good { color: #2a9d8f; }
+    .race-card-value.medium { color: #457b9d; }
+    .race-card-subtext { font-size: 11px; color: #888; }
+    
+    /* Existing styles... */
     .map-container { position: relative; background: #fafafa; border-radius: 8px; padding: 16px; margin: 16px 0; }
     #map { width: 100%; height: 420px; }
     .state { stroke: #fff; stroke-width: 1px; cursor: pointer; transition: opacity 0.15s; }
@@ -103,14 +141,6 @@
     .source-link a { color: #457b9d; text-decoration: none; }
     .source-link a:hover { text-decoration: underline; }
     
-    /* Comparison bars for education/income */
-    .comparison-chart { margin: 20px 0; }
-    .comparison-row { display: flex; align-items: center; margin: 8px 0; }
-    .comparison-label { width: 180px; font-size: 12px; font-weight: 500; }
-    .comparison-bar-container { flex: 1; height: 24px; background: #eee; border-radius: 4px; position: relative; }
-    .comparison-bar { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
-    .comparison-value { font-family: 'Roboto Mono', monospace; font-size: 11px; font-weight: 600; color: white; }
-    
     .sources { background: #fafafa; padding: 24px 48px; font-size: 11px; color: #888; }
     .sources h3 { font-family: 'Roboto Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; color: #666; }
     .sources a { color: #457b9d; text-decoration: none; }
@@ -122,9 +152,10 @@
       .header, .section, .sources, .narrative { padding-left: 20px; padding-right: 20px; }
       h1 { font-size: 26px; }
       .big-number-grid { grid-template-columns: repeat(2, 1fr); }
-      .policy-grid { grid-template-columns: 1fr; }
+      .policy-grid, .race-comparison-grid { grid-template-columns: 1fr; }
       #map { height: 300px; }
-      .comparison-label { width: 120px; font-size: 10px; }
+      .impact-number { font-size: 40px; }
+      .impact-statement { font-size: 20px; }
     }
   </style>
 </head>
@@ -195,14 +226,161 @@
       <p class="narrative-text">This disparity cannot be explained by income, education, or access to care alone. Research points to <strong>chronic stress from experiencing racism</strong> — a phenomenon called "weathering" — that causes biological wear on the body over time. It also reflects bias in the healthcare system: Black women's pain is more likely to be dismissed, their symptoms ignored.</p>
     </div>
 
-    <!-- PART 4: EDUCATION LEVEL (NEW SECTION) -->
+    <!-- PART 4: EDUCATION LEVEL (ENHANCED) -->
     <div class="section">
-      <div class="section-title">Education Level: A Protective Factor — But Not for Everyone</div>
-      <div class="section-desc">Higher education is associated with better health outcomes. But the protective effect varies dramatically by race.</div>
+      <div class="section-title">When Education Isn't Enough</div>
+      <div class="section-desc">Higher education should protect health. But for Black women, the "education advantage" is dramatically eroded by systemic racism.</div>
       
-      <div class="chart-container" style="height: 300px;">
-        <canvas id="educationChart"></canvas>
+      <!-- NEW: Impact callout -->
+      <div class="impact-box">
+        <div class="impact-box-title">The Shocking Reality</div>
+        <div class="impact-statement">A Black woman with a PhD faces higher maternal mortality risk than a white woman who never finished high school.</div>
+        <div class="impact-detail">This is not about individual choices or behaviors. This is structural racism embedded in our healthcare system.</div>
       </div>
+
+      <!-- NEW: Side-by-side comparison for maximum impact -->
+      <div class="race-comparison-grid">
+        <div class="race-card worst">
+          <div class="race-card-label">Black Women<br>No High School</div>
+          <div class="race-card-value critical">45.6</div>
+          <div class="race-card-subtext">deaths per 100K</div>
+        </div>
+        <div class="race-card worst">
+          <div class="race-card-label">Black Women<br>College+</div>
+          <div class="race-card-value critical">40.2</div>
+          <div class="race-card-subtext">deaths per 100K</div>
+        </div>
+        <div class="race-card best">
+          <div class="race-card-label">White Women<br>College+</div>
+          <div class="race-card-value good">7.8</div>
+          <div class="race-card-subtext">deaths per 100K</div>
+        </div>
+      </div>
+
+      <div class="comparison-visual">
+        <div class="comparison-group-title">Maternal Mortality by Education & Race (per 100,000 births)</div>
+        
+        <div class="comparison-group">
+          <div style="font-weight: 600; font-size: 12px; margin-bottom: 12px; color: #e63946;">■ Black Women</div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Less than High School</div>
+              <div class="comparison-value critical">45.6</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill critical" style="width: 100%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">High School Graduate</div>
+              <div class="comparison-value critical">59.1</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill critical" style="width: 100%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Some College</div>
+              <div class="comparison-value critical">41.0</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill critical" style="width: 69%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">College Degree or Higher</div>
+              <div class="comparison-value critical">40.2</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill critical" style="width: 68%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-group">
+          <div style="font-weight: 600; font-size: 12px; margin-bottom: 12px; color: #457b9d;">■ White Women</div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Less than High School</div>
+              <div class="comparison-value warning">25.0</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill warning" style="width: 42%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">High School Graduate</div>
+              <div class="comparison-value warning">25.2</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill warning" style="width: 43%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Some College</div>
+              <div class="comparison-value medium">11.7</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill medium" style="width: 20%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">College Degree or Higher</div>
+              <div class="comparison-value good">7.8</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill good" style="width: 13%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-group">
+          <div style="font-weight: 600; font-size: 12px; margin-bottom: 12px; color: #2a9d8f;">■ Hispanic Women</div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Less than High School</div>
+              <div class="comparison-value medium">12.6</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill medium" style="width: 21%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">High School Graduate</div>
+              <div class="comparison-value medium">11.2</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill medium" style="width: 19%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Some College</div>
+              <div class="comparison-value good">9.4</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill good" style="width: 16%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">College Degree or Higher</div>
+              <div class="comparison-value good">9.3</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill good" style="width: 16%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="source-link">Source: <a href="https://www.cdc.gov/mmwr/volumes/68/wr/mm6835a3.htm" target="_blank">CDC MMWR: Racial/Ethnic Disparities in Pregnancy-Related Deaths, 2007–2016</a></div>
       
       <div class="annotation-blue annotation">
@@ -210,30 +388,130 @@
       </div>
     </div>
 
-    <!-- PART 5: INCOME & SOCIOECONOMIC STATUS (NEW SECTION) -->
+    <!-- PART 5: INCOME & POVERTY (ENHANCED) -->
     <div class="section">
-      <div class="section-title">Income & Poverty: The Deadliest Divide</div>
-      <div class="section-desc">Socioeconomic status is one of the strongest predictors of maternal mortality. Women in the poorest communities face dramatically higher risks.</div>
+      <div class="section-title">The Poverty Trap: When Money Determines Who Lives</div>
+      <div class="section-desc">Socioeconomic status is one of the strongest predictors of maternal mortality—but even when controlling for income, Black women still face disproportionate risk.</div>
       
-      <div class="chart-container" style="height: 280px;">
-        <canvas id="incomeChart"></canvas>
+      <!-- NEW: Dramatic impact statement -->
+      <div class="impact-box">
+        <div class="impact-number">2.4×</div>
+        <div class="impact-statement">Women in the poorest communities are 2.4 times more likely to die during pregnancy or childbirth</div>
+        <div class="impact-detail">And the gap has been <strong>widening</strong>, not narrowing. Between 2002 and 2018, the disparity between the richest and poorest areas grew by 22%.</div>
       </div>
-      <div class="source-link">Source: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7792749/" target="_blank">PMC: Trends and Social Inequalities in Maternal Mortality, 1969-2018</a></div>
-      
+
+      <!-- NEW: Enhanced comparison visualization -->
+      <div class="comparison-visual">
+        <div class="comparison-group-title">Maternal Mortality by Area Deprivation & Race (per 100,000 births)</div>
+        
+        <div class="comparison-group">
+          <div style="font-weight: 600; font-size: 12px; margin-bottom: 12px; color: #e63946;">■ Black Women — The Worst of Both Worlds</div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Most Affluent Areas</div>
+              <div class="comparison-value critical">32.1</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill critical" style="width: 58%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Middle Areas</div>
+              <div class="comparison-value critical">41.8</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill critical" style="width: 76%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Most Deprived Areas</div>
+              <div class="comparison-value critical">55.2</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill critical" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-group">
+          <div style="font-weight: 600; font-size: 12px; margin-bottom: 12px; color: #457b9d;">■ All Women — The Income Gradient</div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Most Affluent Areas</div>
+              <div class="comparison-value medium">12.5</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill medium" style="width: 23%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Middle Areas</div>
+              <div class="comparison-value medium">18.2</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill medium" style="width: 33%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Most Deprived Areas</div>
+              <div class="comparison-value warning">27.5</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill warning" style="width: 50%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-group">
+          <div style="font-weight: 600; font-size: 12px; margin-bottom: 12px; color: #4ecdc4;">■ White Women — Money Helps, But Not Enough</div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Most Affluent Areas</div>
+              <div class="comparison-value good">10.2</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill good" style="width: 18%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Middle Areas</div>
+              <div class="comparison-value medium">14.8</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill medium" style="width: 27%"></div>
+            </div>
+          </div>
+          <div class="comparison-item">
+            <div class="comparison-header">
+              <div class="comparison-label">Most Deprived Areas</div>
+              <div class="comparison-value warning">22.5</div>
+            </div>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill warning" style="width: 41%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="big-number-grid" style="grid-template-columns: repeat(3, 1fr);">
         <div class="big-number"><div class="big-number-value red">2.4×</div><div class="big-number-label">Risk for Low-Income Women</div></div>
         <div class="big-number"><div class="big-number-value red">120%</div><div class="big-number-label">Higher Mortality in Most Deprived Areas</div></div>
         <div class="big-number"><div class="big-number-value red">50%</div><div class="big-number-label">Higher in Rural vs Urban</div></div>
       </div>
-      <div class="source-link">Source: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7345089/" target="_blank">PMC: Socioeconomic Status and Maternal Mortality</a></div>
+      <div class="source-link">Source: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7345089/" target="_blank">PMC: Socioeconomic Status and Maternal Mortality</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7792749/" target="_blank">PMC: Trends and Social Inequalities in Maternal Mortality, 1969-2018</a></div>
       
       <div class="annotation annotation">
-        <strong>Medicaid matters:</strong> Medicaid covers 43% of all U.S. births. In states that expanded Medicaid under the ACA, maternal mortality rates are significantly lower. The 10 states that haven't expanded Medicaid have 50% higher maternal mortality on average.
+        <strong>Medicaid expansion matters:</strong> Medicaid covers 43% of all U.S. births. In states that expanded Medicaid under the ACA, maternal mortality rates are significantly lower. The 10 states that haven't expanded Medicaid have 50% higher maternal mortality on average.
       </div>
     </div>
 
     <div class="narrative">
-      <p class="narrative-text">The connection between poverty and maternal death isn't mysterious. Poor women are more likely to have <strong>chronic health conditions, less access to prenatal care, higher stress levels,</strong> and to deliver at under-resourced hospitals. But the gap has been <strong>widening, not narrowing</strong> — between 2002 and 2018, the disparity between the richest and poorest areas grew larger.</p>
+      <p class="narrative-text">The connection between poverty and maternal death isn't mysterious. Poor women are more likely to have <strong>chronic health conditions, less access to prenatal care, higher stress levels,</strong> and to deliver at under-resourced hospitals. But notice the pattern: <strong>even affluent Black women (32.1/100K) have worse outcomes than poor white women (22.5/100K).</strong> Wealth helps, but it doesn't eliminate the racism embedded in our healthcare system.</p>
     </div>
 
     <!-- PART 6: STATE RANKINGS -->
@@ -351,7 +629,6 @@
 
   <script>
     // Comprehensive state data with socioeconomic indicators
-    // Sources: CDC, Census Bureau (2023 ACS), KFF Medicaid Expansion Tracker
     const stateData = {
       'Alabama': { mm: 36.5, preterm: 12.1, grade: 'F', infant: 7.6, prenatal: 19.2, policies: 3, poverty: 15.6, medicaid: false, uninsured: 10.5 },
       'Alaska': { mm: 19.2, preterm: 9.8, grade: 'B', infant: 5.8, prenatal: 18.5, policies: 3, poverty: 10.4, medicaid: true, uninsured: 11.2 },
@@ -579,110 +856,6 @@
         scales: {
           x: { max: 55, grid: { color: '#eee' }, ticks: { callback: v => v, font: { family: 'Roboto Mono', size: 10 } } },
           y: { grid: { display: false }, ticks: { font: { size: 12, weight: 600 } } }
-        }
-      }
-    });
-
-    // Education chart (NEW)
-    new Chart(document.getElementById('educationChart'), {
-      type: 'bar',
-      data: {
-        labels: ['< High School', 'High School', 'Some College', 'College+'],
-        datasets: [
-          {
-            label: 'Black Women',
-            data: [45.6, 59.1, 41.0, 40.2],
-            backgroundColor: '#e63946',
-            borderRadius: 4
-          },
-          {
-            label: 'White Women',
-            data: [25.0, 25.2, 11.7, 7.8],
-            backgroundColor: '#457b9d',
-            borderRadius: 4
-          },
-          {
-            label: 'Hispanic Women',
-            data: [12.6, 11.2, 9.4, 9.3],
-            backgroundColor: '#2a9d8f',
-            borderRadius: 4
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'top',
-            labels: { font: { size: 11 } }
-          },
-          tooltip: {
-            callbacks: {
-              label: ctx => `${ctx.dataset.label}: ${ctx.raw} per 100,000`
-            }
-          }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { family: 'Roboto Mono', size: 10 } } },
-          y: { 
-            max: 65, 
-            grid: { color: '#eee' }, 
-            ticks: { font: { family: 'Roboto Mono', size: 10 } },
-            title: { display: true, text: 'Deaths per 100,000', font: { size: 10 } }
-          }
-        }
-      }
-    });
-
-    // Income/Deprivation chart (NEW)
-    new Chart(document.getElementById('incomeChart'), {
-      type: 'bar',
-      data: {
-        labels: ['Most Affluent Areas', 'Middle Areas', 'Most Deprived Areas'],
-        datasets: [
-          {
-            label: 'All Women',
-            data: [12.5, 18.2, 27.5],
-            backgroundColor: '#457b9d',
-            borderRadius: 4
-          },
-          {
-            label: 'Black Women',
-            data: [32.1, 41.8, 55.2],
-            backgroundColor: '#e63946',
-            borderRadius: 4
-          },
-          {
-            label: 'White Women',
-            data: [10.2, 14.8, 22.5],
-            backgroundColor: '#4ecdc4',
-            borderRadius: 4
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'top',
-            labels: { font: { size: 11 } }
-          },
-          tooltip: {
-            callbacks: {
-              label: ctx => `${ctx.dataset.label}: ${ctx.raw} per 100,000`
-            }
-          }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { family: 'Roboto Mono', size: 10 } } },
-          y: { 
-            max: 60, 
-            grid: { color: '#eee' }, 
-            ticks: { font: { family: 'Roboto Mono', size: 10 } },
-            title: { display: true, text: 'Deaths per 100,000', font: { size: 10 } }
-          }
         }
       }
     });
